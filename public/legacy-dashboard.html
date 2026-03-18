@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCP Partners — Distribution Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;transition:background .3s,color .3s;min-height:100vh}
+body.night{background:#0d1625;color:#e0e6f0}
+body.day{background:#f0f2f5;color:#1a2233}
+
+/* LOGIN */
+#login-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center}
+body.night #login-overlay{background:#0d1625}
+body.day #login-overlay{background:#e8edf5}
+.login-box{padding:48px;width:360px;text-align:center;border-radius:6px}
+body.night .login-box{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12)}
+body.day .login-box{background:#fff;border:1px solid #dde3ee;box-shadow:0 8px 32px rgba(0,0,0,0.08)}
+.login-logo{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:4px;color:#6b9bd2;margin-bottom:8px}
+.login-title{font-size:22px;font-weight:700;margin-bottom:4px}
+body.night .login-title{color:#fff}
+body.day .login-title{color:#1a2233}
+.login-sub{font-size:12px;margin-bottom:28px}
+body.night .login-sub{color:rgba(255,255,255,0.3)}
+body.day .login-sub{color:#888}
+.login-tabs{display:flex;gap:8px;margin-bottom:20px}
+.login-tab{flex:1;padding:9px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;border:1px solid;background:transparent;cursor:pointer;transition:all .2s;border-radius:2px}
+body.night .login-tab{border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.3)}
+body.day .login-tab{border-color:#dde3ee;color:#999}
+.login-tab.active{border-color:#6b9bd2!important;color:#6b9bd2!important;background:rgba(107,155,210,0.1)!important}
+.login-input{width:100%;padding:11px 14px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;margin-bottom:10px;outline:none;border-radius:2px}
+body.night .login-input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#fff}
+body.day .login-input{background:#f5f7fa;border:1px solid #dde3ee;color:#1a2233}
+.login-input:focus{border-color:#6b9bd2!important}
+.login-btn{width:100%;padding:12px;background:#6b9bd2;border:none;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-radius:2px}
+.login-btn:hover{opacity:.85}
+.login-error{font-size:11px;color:#f87171;margin-top:8px;display:none}
+.view-note{font-size:11px;margin-top:12px;display:none}
+body.night .view-note{color:rgba(255,255,255,0.25)}
+body.day .view-note{color:#aaa}
+
+/* TOPBAR */
+#topbar{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:10px 24px;backdrop-filter:blur(8px)}
+body.night #topbar{background:rgba(13,22,37,0.95);border-bottom:1px solid rgba(255,255,255,0.06)}
+body.day #topbar{background:rgba(240,242,245,0.95);border-bottom:1px solid #dde3ee}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-logo{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:3px;font-weight:500}
+body.night .tb-logo{color:#6b9bd2}
+body.day .tb-logo{color:#2d5a9e}
+.mode-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:2px 8px;border-radius:2px}
+.mode-badge.admin{background:rgba(74,222,128,0.15);color:#4ade80;border:1px solid rgba(74,222,128,0.3)}
+.mode-badge.view{background:rgba(107,155,210,0.15);color:#6b9bd2;border:1px solid rgba(107,155,210,0.3)}
+body.day .mode-badge.admin{background:rgba(34,197,94,0.1);color:#16a34a;border:1px solid rgba(34,197,94,0.3)}
+body.day .mode-badge.view{background:rgba(45,90,158,0.08);color:#2d5a9e;border:1px solid rgba(45,90,158,0.2)}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-btn{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 12px;border-radius:2px;background:transparent;cursor:pointer;transition:opacity .2s;display:flex;align-items:center;gap:5px}
+body.night .tb-btn{border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4)}
+body.day .tb-btn{border:1px solid #dde3ee;color:#888}
+.tb-btn:hover{opacity:.7}
+
+/* MAIN */
+#main{padding:64px 24px 40px;max-width:1500px;margin:0 auto}
+.pg-meta{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+.pg-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase}
+body.night .pg-title{color:#6b9bd2}
+body.day .pg-title{color:#2d5a9e}
+.pg-heading{font-size:22px;font-weight:700;margin-bottom:2px}
+body.night .pg-heading{color:#fff}
+body.day .pg-heading{color:#1a2233}
+.pg-sub{font-size:11px;margin-bottom:16px}
+body.night .pg-sub{color:rgba(255,255,255,0.25)}
+body.day .pg-sub{color:#999}
+
+/* STELLAR RAIL */
+.stellar-rail{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 16px;border-radius:4px;margin-bottom:14px;flex-wrap:wrap}
+body.night .stellar-rail{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07)}
+body.day .stellar-rail{background:#fff;border:1px solid #dde3ee}
+.sr-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase}
+body.night .sr-lbl{color:rgba(255,255,255,0.2)}
+body.day .sr-lbl{color:#aaa}
+.sr-name{font-size:12px;font-weight:700;letter-spacing:3px}
+body.night .sr-name{color:#fff}
+body.day .sr-name{color:#1a2233}
+.sr-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;border-radius:2px}
+body.night .sr-badge{border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.25)}
+body.day .sr-badge{border:1px solid #dde3ee;color:#888}
+
+/* ── ROW 1: MVP · TARGET · MILESTONES ── */
+.row1{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+
+/* ── ROW 2: ALPHA · BETA · GAMMA + RIGHT COL ── */
+.row2{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+
+/* CARD */
+.card{border-radius:5px;overflow:hidden;display:flex;flex-direction:column}
+body.night .card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07)}
+body.day .card{background:#fff;border:1px solid #dde3ee;box-shadow:0 1px 8px rgba(0,0,0,0.04)}
+
+.card-head{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid;flex-shrink:0}
+body.night .card-head{border-bottom-color:rgba(255,255,255,0.05)}
+body.day .card-head{border-bottom-color:#eef0f5}
+.card-head.mvp{background:rgba(52,211,153,0.07)}
+.card-head.target{background:rgba(107,155,210,0.07)}
+.card-head.milestones{background:rgba(251,191,36,0.07)}
+.card-head.alpha{background:rgba(34,197,94,0.07)}
+.card-head.beta{background:rgba(139,92,246,0.07)}
+.card-head.gamma{background:rgba(239,68,68,0.07)}
+.card-head.partners{background:rgba(107,155,210,0.07)}
+.card-head.compliance{background:rgba(239,68,68,0.05)}
+
+.head-left{display:flex;align-items:center;gap:7px}
+.lbadge{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;padding:2px 7px;border-radius:2px;font-weight:500;white-space:nowrap}
+.lbadge.mvp{background:rgba(52,211,153,0.2);color:#34d399}
+.lbadge.target{background:rgba(107,155,210,0.2);color:#6b9bd2}
+.lbadge.milestones{background:rgba(251,191,36,0.2);color:#fbbf24}
+.lbadge.alpha{background:rgba(34,197,94,0.2);color:#4ade80}
+.lbadge.beta{background:rgba(139,92,246,0.2);color:#a78bfa}
+.lbadge.gamma{background:rgba(239,68,68,0.2);color:#f87171}
+.lbadge.partners{background:rgba(107,155,210,0.2);color:#6b9bd2}
+.lbadge.compliance{background:rgba(239,68,68,0.15);color:#f87171}
+body.day .lbadge.mvp{background:rgba(5,150,105,0.1);color:#059669}
+body.day .lbadge.target{background:rgba(45,90,158,0.1);color:#2d5a9e}
+body.day .lbadge.milestones{background:rgba(217,119,6,0.1);color:#d97706}
+body.day .lbadge.alpha{background:rgba(34,197,94,0.12);color:#16a34a}
+body.day .lbadge.beta{background:rgba(139,92,246,0.12);color:#7c3aed}
+body.day .lbadge.gamma{background:rgba(239,68,68,0.12);color:#dc2626}
+body.day .lbadge.partners{background:rgba(45,90,158,0.1);color:#2d5a9e}
+body.day .lbadge.compliance{background:rgba(220,38,38,0.08);color:#dc2626}
+
+.card-title{font-size:12px;font-weight:600}
+body.night .card-title{color:#fff}
+body.day .card-title{color:#1a2233}
+
+.add-btn{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 8px;border-radius:2px;background:transparent;cursor:pointer;border:1px solid;transition:opacity .2s;display:none;flex-shrink:0}
+body.night .add-btn{border-color:rgba(255,255,255,0.12);color:rgba(255,255,255,0.35)}
+body.day .add-btn{border-color:#dde3ee;color:#888}
+.add-btn:hover{opacity:.6}
+
+.card-body{padding:12px 14px;flex:1}
+
+/* STATS GRID (MVP / Target) */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px}
+body.night .stats-grid{background:rgba(255,255,255,0.04)}
+body.day .stats-grid{background:#eef0f5}
+.stat-cell{padding:10px 12px}
+body.night .stat-cell{background:#0d1625}
+body.day .stat-cell{background:#fff}
+.stat-num{font-size:16px;font-weight:700;line-height:1;margin-bottom:3px}
+body.night .stat-num{color:#fff}
+body.day .stat-num{color:#1a2233}
+.stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.5px;text-transform:uppercase;line-height:1.3}
+body.night .stat-lbl{color:rgba(255,255,255,0.25)}
+body.day .stat-lbl{color:#aaa}
+.stat-edit{font-size:9px;color:#6b9bd2;cursor:pointer;display:none;float:right;opacity:.6}
+.stat-edit:hover{opacity:1}
+.stat-input{width:100%;background:transparent;border:none;border-bottom:1px solid #6b9bd2;color:inherit;font-family:inherit;font-size:inherit;font-weight:inherit;outline:none;padding:0}
+
+/* TECH LIST */
+.tech-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid}
+body.night .tech-item{border-bottom-color:rgba(255,255,255,0.04)}
+body.day .tech-item{border-bottom-color:#f0f2f5}
+.tech-item:last-child{border-bottom:none}
+.sdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:4px;transition:background .2s,transform .15s}
+.sdot.done{background:#22c55e;box-shadow:0 0 4px rgba(34,197,94,0.5)}
+.sdot.progress{background:#f59e0b;box-shadow:0 0 4px rgba(245,158,11,0.5)}
+.sdot.proposal{background:#3a3a4a}
+body.day .sdot.proposal{background:#ccc}
+.sdot.clickable{cursor:pointer}
+.sdot.clickable:hover{transform:scale(1.4)}
+.tech-info{flex:1;min-width:0}
+.tech-name{font-size:11px;font-weight:600;margin-bottom:1px}
+body.night .tech-name{color:rgba(255,255,255,0.85)}
+body.day .tech-name{color:#1a2233}
+.tech-desc{font-family:'IBM Plex Mono',monospace;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.night .tech-desc{color:rgba(255,255,255,0.25)}
+body.day .tech-desc{color:#aaa}
+.idel{font-size:10px;color:#f87171;cursor:pointer;padding:0 2px;display:none;opacity:.5;flex-shrink:0}
+.idel:hover{opacity:1}
+
+/* TIMELINE */
+.tl-wrap{position:relative;padding-left:2px}
+.tl-wrap::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:1px}
+body.night .tl-wrap::before{background:rgba(255,255,255,0.07)}
+body.day .tl-wrap::before{background:#dde3ee}
+.tl-item{display:flex;gap:10px;padding:5px 0;align-items:flex-start}
+.tl-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;margin-top:2px;border:2px solid;position:relative;z-index:1}
+.tl-dot.done{background:#22c55e;border-color:#22c55e}
+.tl-dot.progress{background:#f59e0b;border-color:#f59e0b}
+body.night .tl-dot.proposal{background:transparent;border-color:#3a3a4a}
+body.day .tl-dot.proposal{background:transparent;border-color:#ccc}
+.tl-r{flex:1;min-width:0}
+.tl-date{font-family:'IBM Plex Mono',monospace;font-size:9px}
+body.night .tl-date{color:rgba(255,255,255,0.22)}
+body.day .tl-date{color:#aaa}
+.tl-lbl{font-size:10px;font-weight:500;margin-top:1px;line-height:1.3}
+body.night .tl-lbl{color:rgba(255,255,255,0.75)}
+body.day .tl-lbl{color:#333}
+.tl-del{font-size:10px;color:#f87171;cursor:pointer;display:none;opacity:.5;margin-left:4px}
+.tl-del:hover{opacity:1}
+
+/* PARTNERS */
+.partner-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid}
+body.night .partner-item{border-bottom-color:rgba(255,255,255,0.04)}
+body.day .partner-item{border-bottom-color:#f0f2f5}
+.partner-item:last-child{border-bottom:none}
+.p-logo{width:24px;height:24px;border-radius:3px;object-fit:contain;flex-shrink:0}
+.p-placeholder{width:24px;height:24px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:8px;flex-shrink:0}
+body.night .p-placeholder{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.3)}
+body.day .p-placeholder{background:#eef0f5;color:#aaa}
+.p-name{font-size:11px;font-weight:500;flex:1}
+body.night .p-name{color:rgba(255,255,255,0.8)}
+body.day .p-name{color:#333}
+.p-del{font-size:10px;color:#f87171;cursor:pointer;display:none;opacity:.5}
+.p-del:hover{opacity:1}
+
+/* COMPLIANCE GRID */
+.comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.comp-item{display:flex;align-items:flex-start;gap:6px;padding:6px 8px;border-radius:3px;border:1px solid}
+body.night .comp-item{border-color:rgba(255,255,255,0.06);background:rgba(255,255,255,0.02)}
+body.day .comp-item{border-color:#eef0f5;background:#f8f9fc}
+.comp-info{flex:1;min-width:0}
+.comp-name{font-size:10px;font-weight:600}
+body.night .comp-name{color:rgba(255,255,255,0.8)}
+body.day .comp-name{color:#1a2233}
+.comp-role{font-family:'IBM Plex Mono',monospace;font-size:8px}
+body.night .comp-role{color:rgba(255,255,255,0.25)}
+body.day .comp-role{color:#aaa}
+.comp-del{font-size:9px;color:#f87171;cursor:pointer;display:none;opacity:.5;flex-shrink:0;margin-top:1px}
+.comp-del:hover{opacity:1}
+
+/* ADD FORM */
+.add-form{display:none;padding:10px 14px;border-top:1px solid}
+body.night .add-form{border-top-color:rgba(255,255,255,0.06);background:rgba(0,0,0,0.15)}
+body.day .add-form{border-top-color:#eef0f5;background:#f8f9fc}
+.af-input{width:100%;padding:6px 9px;font-family:'IBM Plex Sans',sans-serif;font-size:11px;border:1px solid;border-radius:2px;outline:none;margin-bottom:5px}
+body.night .af-input{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1);color:#fff}
+body.day .af-input{background:#fff;border-color:#dde3ee;color:#1a2233}
+.af-row{display:flex;gap:5px}
+.af-sel{flex:1;padding:6px 7px;font-family:'IBM Plex Mono',monospace;font-size:10px;border:1px solid;border-radius:2px;outline:none}
+body.night .af-sel{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1);color:#fff}
+body.day .af-sel{background:#fff;border-color:#dde3ee;color:#1a2233}
+.af-save{padding:6px 12px;background:#6b9bd2;border:none;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;cursor:pointer;border-radius:2px}
+
+.card-foot{padding:7px 14px;border-top:1px solid;flex-shrink:0}
+body.night .card-foot{background:rgba(0,0,0,0.12);border-top-color:rgba(255,255,255,0.04)}
+body.day .card-foot{background:#f8f9fc;border-top-color:#eef0f5}
+.foot-txt{font-family:'IBM Plex Mono',monospace;font-size:8px}
+body.night .foot-txt{color:rgba(255,255,255,0.18)}
+body.day .foot-txt{color:#bbb}
+
+/* LEGEND */
+.legend{display:flex;gap:12px;padding:10px 0 0}
+.leg{display:flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:9px}
+body.night .leg{color:rgba(255,255,255,0.28)}
+body.day .leg{color:#888}
+.ldot{width:7px;height:7px;border-radius:50%}
+.ldot.done{background:#22c55e}
+.ldot.progress{background:#f59e0b}
+.ldot.proposal{background:#3a3a4a}
+body.day .ldot.proposal{background:#ccc}
+
+/* FLOW BOX */
+.flow-box{border-radius:5px;padding:16px;margin-bottom:12px}
+body.night .flow-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)}
+body.day .flow-box{background:#fff;border:1px solid #dde3ee;box-shadow:0 1px 8px rgba(0,0,0,0.04)}
+.box-title{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid}
+body.night .box-title{color:rgba(255,255,255,0.22);border-bottom-color:rgba(255,255,255,0.06)}
+body.day .box-title{color:#aaa;border-bottom-color:#eef0f5}
+.flow-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.fn{width:17px;height:17px;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+body.night .fn{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.3)}
+body.day .fn{background:#f0f2f5;color:#888}
+.ft{font-size:11px}
+body.night .ft{color:rgba(255,255,255,0.5)}
+body.day .ft{color:#555}
+.fh{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#a78bfa}
+
+/* HERO HEADER */
+.hero-header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:16px}
+.hero-left{flex:1}
+.hero-right{display:flex;align-items:flex-start;gap:20px;flex-shrink:0}
+
+/* ERSTER LOGO */
+.erster-logo-wrap{text-align:right;padding-top:2px}
+.erster-logo{font-family:'Times New Roman',Times,serif;font-size:42px;font-weight:900;letter-spacing:2px;line-height:1;transition:color .3s}
+body.night .erster-logo{color:#fff}
+body.day .erster-logo{color:#1a2233}
+.erster-tagline{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;text-align:right;margin-top:3px}
+body.night .erster-tagline{color:rgba(255,255,255,0.25)}
+body.day .erster-tagline{color:#aaa}
+
+/* PRODUCT IMAGE */
+.product-image-wrap{width:220px;height:130px;border-radius:5px;cursor:pointer;overflow:hidden;transition:border-color .2s,opacity .2s;flex-shrink:0;position:relative}
+body.night .product-image-wrap{border:1px dashed rgba(255,255,255,0.15);background:rgba(255,255,255,0.02)}
+body.day .product-image-wrap{border:1px dashed #ccd3e0;background:#f8f9fc}
+.product-image-wrap:hover{opacity:.8}
+.product-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:5px;pointer-events:none}
+.pp-icon{font-size:22px;opacity:.3}
+.pp-text{font-size:11px;font-weight:500}
+body.night .pp-text{color:rgba(255,255,255,0.35)}
+body.day .pp-text{color:#888}
+.pp-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.5px}
+body.night .pp-sub{color:rgba(255,255,255,0.18)}
+body.day .pp-sub{color:#bbb}
+
+/* FINANCING STREAMS */
+.fin-stream{}
+body.night .fin-stream{border-bottom-color:rgba(255,255,255,0.07)!important}
+body.day .fin-stream{border-bottom-color:#eef0f5!important}
+.fin-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid}
+body.night .fin-header{border-bottom-color:rgba(255,255,255,0.05)}
+body.day .fin-header{border-bottom-color:#eef0f5}
+.fin-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;color:#34d399}
+.fin-total{font-size:22px;font-weight:700;line-height:1}
+body.night .fin-total{color:#fff}
+body.day .fin-total{color:#1a2233}
+.fin-add-btn{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 8px;border-radius:2px;background:transparent;cursor:pointer;border:1px solid;transition:opacity .2s}
+body.night .fin-add-btn{border-color:rgba(255,255,255,0.12);color:rgba(255,255,255,0.35)}
+body.day .fin-add-btn{border-color:#dde3ee;color:#888}
+.fin-add-btn:hover{opacity:.7}
+.fin-items{padding:4px 0}
+.fin-item{display:flex;align-items:center;gap:8px;padding:7px 16px;border-bottom:1px solid}
+body.night .fin-item{border-bottom-color:rgba(255,255,255,0.03)}
+body.day .fin-item{border-bottom-color:#f5f6fa}
+.fin-item:last-child{border-bottom:none}
+.fin-item-name{flex:1;font-size:11px;font-weight:500}
+body.night .fin-item-name{color:rgba(255,255,255,0.75)}
+body.day .fin-item-name{color:#333}
+.fin-item-amt{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;flex-shrink:0}
+body.night .fin-item-amt{color:rgba(255,255,255,0.6)}
+body.day .fin-item-amt{color:#555}
+.fin-form{padding:10px 16px!important;border-top:1px solid!important}
+body.night .fin-form{border-top-color:rgba(255,255,255,0.06)!important;background:rgba(0,0,0,0.12)!important}
+body.day .fin-form{border-top-color:#eef0f5!important;background:#f8f9fc!important}
+
+/* CHANNEL METRICS STRIP */
+.ch-metrics{border-radius:5px 5px 0 0;padding:10px 14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px}
+body.night .ch-metrics{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);border-bottom:none}
+body.day .ch-metrics{background:#eef2fa;border:1px solid #dde3ee;border-bottom:none}
+.ch-met{padding:6px 8px;display:flex;flex-direction:column;gap:2px;position:relative}
+.ch-met+.ch-met{border-left:1px solid}
+body.night .ch-met+.ch-met{border-left-color:rgba(255,255,255,0.06)}
+body.day .ch-met+.ch-met{border-left-color:#dde3ee}
+.ch-met-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase}
+body.night .ch-met-lbl{color:rgba(255,255,255,0.25)}
+body.day .ch-met-lbl{color:#aaa}
+.ch-met-val{font-size:16px;font-weight:700;line-height:1;cursor:text}
+body.night .ch-met-val{color:#fff}
+body.day .ch-met-val{color:#1a2233}
+.ch-met-val.auto{font-size:14px}
+body.night .ch-met-val.auto{color:#6b9bd2}
+body.day .ch-met-val.auto{color:#2d5a9e}
+.ch-met-val[contenteditable="true"]{outline:none;border-bottom:1px solid #6b9bd2}
+body.night .ch-met:hover .ch-met-val:not(.auto){background:rgba(107,155,210,0.08);border-radius:2px}
+body.day .ch-met:hover .ch-met-val:not(.auto){background:rgba(45,90,158,0.05);border-radius:2px}
+
+/* CHANNEL MINI MILESTONES */
+.ch-mini-tl{padding:10px 14px 4px;border-top:1px solid}
+body.night .ch-mini-tl{border-top-color:rgba(255,255,255,0.06)}
+body.day .ch-mini-tl{border-top-color:#eaeaea}
+.ch-mini-tl-head{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1.8px;text-transform:uppercase;margin-bottom:8px;opacity:.4}
+.ch-mini-step{display:flex;align-items:flex-start;gap:0;margin-bottom:0;position:relative}
+.ch-mini-step:last-child .ch-mini-line{display:none}
+.ch-mini-left{display:flex;flex-direction:column;align-items:center;width:16px;flex-shrink:0;margin-top:2px}
+.ch-mini-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;border:1.5px solid}
+.ch-mini-dot.done{background:#4ade80;border-color:#4ade80}
+.ch-mini-dot.progress{background:#f97316;border-color:#f97316}
+.ch-mini-dot.proposal{background:transparent}
+body.night .ch-mini-dot.proposal{border-color:rgba(255,255,255,0.2)}
+body.day .ch-mini-dot.proposal{border-color:#ccc}
+.ch-mini-line{width:1.5px;flex-grow:1;min-height:14px;margin:2px 0}
+body.night .ch-mini-line{background:rgba(255,255,255,0.08)}
+body.day .ch-mini-line{background:#e5e7eb}
+.ch-mini-content{padding:0 0 12px 8px;flex:1}
+.ch-mini-date{font-size:9px;font-family:'IBM Plex Mono',monospace;opacity:.4;line-height:1}
+.ch-mini-name{font-size:11px;font-weight:600;line-height:1.3;margin-top:1px}
+body.night .ch-mini-name{color:#e8eaf0}
+body.day .ch-mini-name{color:#1a2233}
+
+/* BUDGET FUNDING PANELS */
+#budget-body>div:first-child{border-bottom:1px solid}
+body.night #budget-body>div:first-child{border-bottom-color:rgba(255,255,255,0.07)}
+body.day #budget-body>div:first-child{border-bottom-color:#dde3ee}
+#budget-body>div:first-child>div+div{border-left:1px solid}
+body.night #budget-body>div:first-child>div+div{border-left-color:rgba(255,255,255,0.07)}
+body.day #budget-body>div:first-child>div+div{border-left-color:#dde3ee}
+
+/* DRAG & DROP */
+.drag-handle{font-size:13px;cursor:grab;opacity:0;transition:opacity .15s;flex-shrink:0;padding:0 4px;line-height:1;color:inherit;user-select:none;-webkit-user-select:none}
+.drag-handle:active{cursor:grabbing}
+.tech-item:hover .drag-handle,
+.tl-item:hover .drag-handle,
+.fin-item:hover .drag-handle,
+.flow-row:hover .drag-handle,
+.partner-item:hover .drag-handle{opacity:.35}
+.drag-handle:hover{opacity:.7!important}
+.drag-ghost{position:fixed;pointer-events:none;z-index:9999;opacity:.85;border-radius:4px;box-shadow:0 8px 24px rgba(0,0,0,0.3);transition:none}
+body.night .drag-ghost{background:#1a2a42;border:1px solid rgba(107,155,210,0.4)}
+body.day .drag-ghost{background:#fff;border:1px solid #6b9bd2;box-shadow:0 8px 24px rgba(0,0,0,0.12)}
+.drag-over-top{border-top:2px solid #6b9bd2!important}
+.drag-over-bottom{border-bottom:2px solid #6b9bd2!important}
+.dragging-source{opacity:.3}
+
+/* EDITABLE FIELDS */
+.editable-field[contenteditable="true"]{outline:none;border-bottom:1px solid #6b9bd2;border-radius:0}
+body.night .editable-field:hover{background:rgba(107,155,210,0.08);border-radius:2px}
+body.day .editable-field:hover{background:rgba(45,90,158,0.06);border-radius:2px}
+
+/* IMPRESSUM */
+.impressum-wrap{text-align:right;padding-top:4px;margin-right:4px}
+.imp-name{font-size:11px;font-weight:700;margin-bottom:3px}
+body.night .imp-name{color:rgba(255,255,255,0.5)}
+body.day .imp-name{color:#2d3a5a}
+.imp-line{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.3px;line-height:1.6}
+body.night .imp-line{color:rgba(255,255,255,0.2)}
+body.day .imp-line{color:#aab}
+
+/* DOCS */
+.docs-mode-btn{flex:1;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;padding:6px 8px;border-radius:2px;cursor:pointer;text-align:center;transition:all .2s;border:1px solid}
+body.night .docs-mode-btn{border-color:rgba(255,255,255,0.08);color:rgba(255,255,255,0.3)}
+body.day .docs-mode-btn{border-color:#dde3ee;color:#aaa}
+.docs-mode-btn.active-mode{background:rgba(99,102,241,0.15);border-color:#818cf8;color:#818cf8}
+.docs-file-drop{border:1px dashed;border-radius:3px;padding:12px;text-align:center;cursor:pointer;transition:opacity .2s;margin-bottom:4px}
+body.night .docs-file-drop{border-color:rgba(255,255,255,0.12);color:rgba(255,255,255,0.3)}
+body.day .docs-file-drop{border-color:#ccd3e0;color:#888}
+.docs-file-drop:hover{opacity:.7}
+#docs-file-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.5px}
+.doc-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid}
+body.night .doc-item{border-bottom-color:rgba(255,255,255,0.04)}
+body.day .doc-item{border-bottom-color:#f0f2f5}
+.doc-item:last-child{border-bottom:none}
+.doc-icon{font-size:14px;flex-shrink:0}
+.doc-info{flex:1;min-width:0}
+.doc-name{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.night .doc-name{color:rgba(255,255,255,0.8)}
+body.day .doc-name{color:#1a2233}
+.doc-dl{font-size:11px;cursor:pointer;flex-shrink:0;opacity:.6;text-decoration:none}
+.doc-dl:hover{opacity:1}
+body.night .doc-dl{color:#6b9bd2}
+body.day .doc-dl{color:#2d5a9e}
+.doc-del{font-size:10px;color:#f87171;cursor:pointer;display:none;opacity:.5;flex-shrink:0}
+.doc-del:hover{opacity:1}
+
+@media(max-width:1400px){.row1{grid-template-columns:1fr 1fr}}
+@media(max-width:1100px){.row1{grid-template-columns:1fr 1fr}.row2{grid-template-columns:1fr 1fr}.hero-header{flex-direction:column}.hero-right{align-self:flex-end}}
+</style>
+</head>
+<body class="night">
+
+<!-- LOGIN -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">BCP PARTNERS</div>
+    <div class="login-title">Distribution Architecture</div>
+    <div class="login-sub">Select access level</div>
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="setLoginMode('admin')">Admin</button>
+      <button class="login-tab" onclick="setLoginMode('view')">View Only</button>
+    </div>
+    <div id="pw-section">
+      <input type="password" class="login-input" id="pw-input" placeholder="Admin password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Enter</button>
+    <div class="login-error" id="login-error">Incorrect password.</div>
+    <div class="view-note" id="view-note">View-only · no editing</div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="tb-left">
+    <div class="tb-logo">BCP PARTNERS</div>
+    <div class="mode-badge view" id="mode-badge">VIEW</div>
+  </div>
+  <div class="tb-right">
+    <button class="tb-btn" onclick="toggleTheme()"><span id="t-icon">☀</span><span id="t-lbl">Day</span></button>
+    <button class="tb-btn" onclick="doLogout()">Logout</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- HERO HEADER -->
+  <div class="hero-header">
+    <div class="hero-left">
+      <div class="pg-title">BCP Partners · Stellar · eWpG · MiFID II</div>
+      <div class="pg-heading">Distribution Architecture</div>
+      <div class="pg-sub">German Jurisdiction · February 2026 · Confidential</div>
+    </div>
+    <div class="hero-right">
+      <!-- IMPRESSUM -->
+      <div class="impressum-wrap">
+        <div class="imp-name">BCP Partners GmbH</div>
+        <div class="imp-line">Rheinsberger Str. 76/77 · 10115 Berlin, Germany</div>
+        <div class="imp-line">VAT: DE400357691 · Tax: 30/219/51885 · HRB 987654</div>
+      </div>
+      <div class="erster-logo-wrap">
+        <div class="erster-logo">ERSTER</div>
+        <div class="erster-tagline">Investment Platform</div>
+      </div>
+      <div class="product-image-wrap" onclick="document.getElementById('img-upload').click()" title="Click to upload product image">
+        <input type="file" id="img-upload" accept="image/*" style="display:none" onchange="loadProductImage(event)">
+        <img id="product-img" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:4px">
+        <div class="product-placeholder" id="product-placeholder">
+          <div class="pp-icon">⊞</div>
+          <div class="pp-text">Upload product screenshot</div>
+          <div class="pp-sub">App · Landing Page · Dashboard</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STELLAR RAIL -->
+  <div class="stellar-rail">
+    <div class="sr-lbl">Settlement Layer</div>
+    <div class="sr-name">⬡ STELLAR</div>
+    <div class="sr-badge">eWpG</div>
+    <div class="sr-badge">ISO 20022</div>
+    <div class="sr-badge">Instant Settlement</div>
+    <div class="sr-badge">Cashlink Minting ✅</div>
+    <div class="sr-badge">MiFID II</div>
+  </div>
+
+  <!-- ROW 1: MVP · TARGET PRODUCT · MILESTONES -->
+  <div class="row1">
+
+    <!-- MVP -->
+    <div class="card">
+      <div class="card-head mvp">
+        <div class="head-left">
+          <div class="lbadge mvp">MVP</div>
+          <div class="card-title">Current Status</div>
+        </div>
+        <span class="add-btn" onclick="showForm('mvp')">+ Add</span>
+      </div>
+      <div class="card-body" style="padding:0">
+        <div class="stats-grid" id="list-mvp"></div>
+      </div>
+      <div class="add-form" id="form-mvp">
+        <input class="af-input" id="af-mvp-name" placeholder="Value (e.g. 25M€)" onkeydown="if(event.key==='Enter')saveStat('mvp')">
+        <input class="af-input" id="af-mvp-desc" placeholder="Label (e.g. Target AUM)" onkeydown="if(event.key==='Enter')saveStat('mvp')">
+        <div class="af-row"><button class="af-save" style="width:100%" onclick="saveStat('mvp')">Add Figure</button></div>
+      </div>
+    </div>
+
+    <!-- TARGET PRODUCT -->
+    <div class="card">
+      <div class="card-head target">
+        <div class="head-left">
+          <div class="lbadge target">TARGET PRODUCT</div>
+          <div class="card-title">Full Platform</div>
+        </div>
+        <span class="add-btn" onclick="showForm('target')">+ Add</span>
+      </div>
+      <div class="card-body" style="padding:0">
+        <div class="stats-grid" id="list-target"></div>
+      </div>
+      <div class="add-form" id="form-target">
+        <input class="af-input" id="af-target-name" placeholder="Value (e.g. 10M€)" onkeydown="if(event.key==='Enter')saveStat('target')">
+        <input class="af-input" id="af-target-desc" placeholder="Label" onkeydown="if(event.key==='Enter')saveStat('target')">
+        <div class="af-row"><button class="af-save" style="width:100%" onclick="saveStat('target')">Add Figure</button></div>
+      </div>
+    </div>
+
+    <!-- MILESTONES -->
+    <div class="card">
+      <div class="card-head milestones">
+        <div class="head-left">
+          <div class="lbadge milestones">MILESTONES</div>
+          <div class="card-title">Roadmap</div>
+        </div>
+        <span class="add-btn" onclick="showForm('timeline')">+ Add</span>
+      </div>
+      <div class="card-body" style="padding:12px 14px">
+        <div class="tl-wrap" id="list-timeline"></div>
+      </div>
+      <div class="add-form" id="form-timeline">
+        <input class="af-input" id="af-timeline-name" placeholder="Milestone label">
+        <input class="af-input" id="af-timeline-desc" placeholder="Date / Period">
+        <div class="af-row">
+          <select class="af-sel" id="af-timeline-status">
+            <option value="done">✅ Done</option>
+            <option value="progress">🟠 In Progress</option>
+            <option value="proposal" selected>⚪ Proposal</option>
+          </select>
+          <button class="af-save" onclick="saveItem('timeline')">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINKS / DOCUMENTS — 4th column in Row 1 -->
+    <div class="card">
+      <div class="card-head" style="background:rgba(99,102,241,0.07)">
+        <div class="head-left">
+          <div class="lbadge" style="background:rgba(99,102,241,0.2);color:#818cf8">LINKS</div>
+          <div class="card-title">Documents & Links</div>
+        </div>
+        <span class="add-btn" id="docs-add-btn" onclick="toggleDocsForm()" style="display:none">+ Add</span>
+      </div>
+      <div class="card-body" style="padding:10px 14px">
+        <div id="docs-list"></div>
+        <div id="docs-form" style="display:none;margin-top:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06)">
+          <div style="display:flex;gap:6px;margin-bottom:8px">
+            <div class="docs-mode-btn active-mode" id="mode-url-btn" onclick="setDocsMode('url')">URL / Link</div>
+            <div class="docs-mode-btn" id="mode-file-btn" onclick="setDocsMode('file')">Upload File</div>
+          </div>
+          <input class="af-input" id="docs-title" placeholder="Document title" onkeydown="if(event.key==='Enter')saveDoc()">
+          <div id="docs-url-section">
+            <input class="af-input" id="docs-url" placeholder="https://... or Drive link" onkeydown="if(event.key==='Enter')saveDoc()">
+          </div>
+          <div id="docs-file-section" style="display:none">
+            <div class="docs-file-drop" onclick="document.getElementById('docs-file-input').click()">
+              <input type="file" id="docs-file-input" style="display:none" onchange="handleDocFile(event)" accept=".pdf,.pptx,.docx,.xlsx,.png,.jpg,.zip">
+              <div id="docs-file-label">Click to select · PDF, PPTX, DOCX, XLSX</div>
+            </div>
+          </div>
+          <div class="af-row" style="margin-top:6px">
+            <select class="af-sel" id="docs-type">
+              <option value="pdf">📄 PDF</option>
+              <option value="ppt">📊 Presentation</option>
+              <option value="doc">📝 Document</option>
+              <option value="sheet">📈 Spreadsheet</option>
+              <option value="contract">⚖️ Contract</option>
+              <option value="link">🔗 Link</option>
+            </select>
+            <button class="af-save" onclick="saveDoc()">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ROW 2: ALPHA · BETA · GAMMA + RIGHT COL -->
+  <div class="row2">
+
+    <!-- ALPHA -->
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div class="ch-metrics" id="metrics-alpha" data-ch="alpha"></div>
+      <div class="card" style="border-top-left-radius:0;border-top-right-radius:0">
+      <div class="card-head alpha">
+        <div class="head-left"><div class="lbadge alpha">ALPHA</div><div class="card-title">V-Bank · Private Depot</div></div>
+        <span class="add-btn" onclick="showForm('alpha')">+ Add</span>
+      </div>
+      <div class="card-body"><div class="tech-list" id="list-alpha"></div></div>
+      <div class="add-form" id="form-alpha">
+        <input class="af-input" id="af-alpha-name" placeholder="Name">
+        <input class="af-input" id="af-alpha-desc" placeholder="Description">
+        <div class="af-row">
+          <select class="af-sel" id="af-alpha-status"><option value="done">✅ Done</option><option value="progress">🟠 Progress</option><option value="proposal" selected>⚪ Proposal</option></select>
+          <button class="af-save" onclick="saveItem('alpha')">Save</button>
+        </div>
+      </div>
+      <div class="ch-mini-tl" id="chmtl-alpha"></div>
+      <div class="card-foot"><div class="foot-txt">Family Offices · HNWI · 200K min. ticket</div></div>
+    </div></div>
+
+    <!-- BETA -->
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div class="ch-metrics" id="metrics-beta" data-ch="beta"></div>
+      <div class="card" style="border-top-left-radius:0;border-top-right-radius:0">
+      <div class="card-head beta">
+        <div class="head-left"><div class="lbadge beta">BETA</div><div class="card-title">Erster Investment Platform</div></div>
+        <span class="add-btn" onclick="showForm('beta')">+ Add</span>
+      </div>
+      <div class="card-body"><div class="tech-list" id="list-beta"></div></div>
+      <div class="add-form" id="form-beta">
+        <input class="af-input" id="af-beta-name" placeholder="Name">
+        <input class="af-input" id="af-beta-desc" placeholder="Description">
+        <div class="af-row">
+          <select class="af-sel" id="af-beta-status"><option value="done">✅ Done</option><option value="progress">🟠 Progress</option><option value="proposal" selected>⚪ Proposal</option></select>
+          <button class="af-save" onclick="saveItem('beta')">Save</button>
+        </div>
+      </div>
+      <div class="ch-mini-tl" id="chmtl-beta"></div>
+      <div class="card-foot"><div class="foot-txt">Retail · HNWI · Family Offices · Institutional</div></div>
+    </div></div>
+
+    <!-- GAMMA -->
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div class="ch-metrics" id="metrics-gamma" data-ch="gamma"></div>
+      <div class="card" style="border-top-left-radius:0;border-top-right-radius:0">
+      <div class="card-head gamma">
+        <div class="head-left"><div class="lbadge gamma">GAMMA</div><div class="card-title">AI Distribution Layer</div></div>
+        <span class="add-btn" onclick="showForm('gamma')">+ Add</span>
+      </div>
+      <div class="card-body"><div class="tech-list" id="list-gamma"></div></div>
+      <div class="add-form" id="form-gamma">
+        <input class="af-input" id="af-gamma-name" placeholder="Name">
+        <input class="af-input" id="af-gamma-desc" placeholder="Description">
+        <div class="af-row">
+          <select class="af-sel" id="af-gamma-status"><option value="done">✅ Done</option><option value="progress">🟠 Progress</option><option value="proposal" selected>⚪ Proposal</option></select>
+          <button class="af-save" onclick="saveItem('gamma')">Save</button>
+        </div>
+      </div>
+      <div class="ch-mini-tl" id="chmtl-gamma"></div>
+      <div class="card-foot"><div class="foot-txt">Agent-referred Retail · HNWI · Family Offices</div></div>
+    </div></div>
+
+    <!-- INVESTOR FUNNEL -->
+    <div class="card">
+      <div class="card-head" style="background:rgba(107,155,210,0.06)">
+        <div class="head-left">
+          <div class="lbadge" style="background:rgba(107,155,210,0.18);color:#6b9bd2">FUNNEL</div>
+          <div class="card-title">Investor Pipeline</div>
+        </div>
+        <span class="add-btn" id="funnel-add-btn" onclick="showForm('funnel')" style="display:none">+ Add</span>
+      </div>
+      <div class="card-body" style="padding:12px 14px">
+        <div class="tl-wrap" id="list-funnel"></div>
+      </div>
+      <div class="add-form" id="form-funnel">
+        <input class="af-input" id="af-funnel-name" placeholder="Investor name">
+        <input class="af-input" id="af-funnel-desc" placeholder="Type · Details (e.g. Family Office · 500K)">
+        <div class="af-row">
+          <select class="af-sel" id="af-funnel-status">
+            <option value="done">✅ Committed</option>
+            <option value="progress">🟠 In Talks</option>
+            <option value="proposal" selected>⚪ Prospect</option>
+          </select>
+          <button class="af-save" onclick="saveItem('funnel')">Save</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- GRANT BUDGET — Full Width, direkt unter Alpha/Beta/Gamma -->
+  <div class="card" id="budget-card" style="margin-bottom:12px;overflow:hidden">
+    <div class="card-head" style="background:rgba(107,155,210,0.06)">
+      <div class="head-left">
+        <div class="lbadge" style="background:rgba(107,155,210,0.18);color:#6b9bd2">FINANZIERUNG</div>
+        <div class="card-title">382.000 € — Mittelverwendung</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="font-size:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;opacity:.35">Stellar Grant 186K + KfW 186K</div>
+        <button class="tb-btn" onclick="toggleBudget()" id="budget-toggle-btn" style="font-size:9px;padding:4px 10px">▼ Collapse</button>
+      </div>
+    </div>
+    <div id="budget-body">
+
+      <!-- Funding sources row — dashboard style -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;margin:0 0 0">
+        <!-- Stellar Grant -->
+        <div style="padding:16px 20px;position:relative">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;opacity:.4">Stellar Community Fund Grant</div>
+          <div style="font-size:26px;font-weight:700;line-height:1;margin-bottom:4px">186.000 €</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;opacity:.4">SRC-8004 · x402 on Stellar · Soroban</div>
+          <div style="position:absolute;top:12px;right:16px;width:6px;height:6px;border-radius:50%;background:#4ade80"></div>
+        </div>
+        <!-- KfW -->
+        <div style="padding:16px 20px;position:relative">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;opacity:.4">Commerzbank-Kredit (KfW-Durchleitung)</div>
+          <div style="font-size:26px;font-weight:700;line-height:1;margin-bottom:4px">186.000 €</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;opacity:.4">ERP Nr. 513/514 · ~4% p.a. · 7 Jahre · 2 TFJ</div>
+          <div style="position:absolute;top:12px;right:16px;width:6px;height:6px;border-radius:50%;background:#f97316"></div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div id="budget-divider" style="height:1px;margin:0 14px"></div>
+
+      <!-- Budget bars + Pie Chart side by side -->
+      <div style="display:grid;grid-template-columns:1fr 280px;gap:0">
+
+        <!-- LEFT: bars (65%) -->
+        <div style="padding:12px 14px 14px;border-right:1px solid var(--budget-divider-col,rgba(255,255,255,0.07))">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;opacity:.3">Mittelverwendung</div>
+          <div id="budget-bars"></div>
+          <div id="budget-total-row" style="display:grid;grid-template-columns:200px 1fr 120px;align-items:center;margin-top:10px;padding-top:10px;gap:12px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;font-weight:700;opacity:.6">TOTAL</div>
+            <div></div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;text-align:right;color:#6b9bd2">382.000 €</div>
+          </div>
+        </div>
+
+        <!-- RIGHT: pie chart (35%) -->
+        <div style="padding:12px 16px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;opacity:.3;align-self:flex-start">Übersicht</div>
+          <canvas id="budget-pie" width="160" height="160" style="display:block"></canvas>
+          <div id="budget-pie-legend" style="width:100%;display:flex;flex-direction:column;gap:4px"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SERVICE ARCHITECTURE DIAGRAM — Full Width -->
+  <div class="card" id="arch-card" style="margin-bottom:12px;overflow:hidden">
+    <div class="card-head" style="background:rgba(91,79,196,0.07)">
+      <div class="head-left">
+        <div class="lbadge" style="background:rgba(91,79,196,0.2);color:#a78bfa">ARCHITECTURE</div>
+        <div class="card-title">Service Architecture — Overview of Service Providers</div>
+      </div>
+      <button class="tb-btn" onclick="toggleArch()" id="arch-toggle-btn" style="font-size:11px;padding:3px 10px">▼ Collapse</button>
+    </div>
+    <div id="arch-body" style="padding:0">
+      <div id="arch-diagram" style="position:relative;width:100%;height:680px;background:inherit"></div>
+    </div>
+  </div>
+
+  <!-- INVESTOR FLOW — Full Width -->
+  <div class="flow-box" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.06)">
+        <div class="box-title" style="margin-bottom:0;padding-bottom:0;border-bottom:none">Investor Flow — All Three Layers</div>
+        <span class="add-btn" id="flow-add-btn" onclick="showForm('flow')" style="display:none">+ Add Step</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="list-flow"></div>
+      <div class="add-form" id="form-flow" style="margin:10px 0 0;padding:10px 0 0;border-top:1px solid rgba(255,255,255,0.06)">
+        <input class="af-input" id="af-flow-name" placeholder="Step label (e.g. KYC/KYB)" onkeydown="if(event.key==='Enter')saveItem('flow')">
+        <input class="af-input" id="af-flow-desc" placeholder="Description (e.g. IDnow · WebID · AML)" onkeydown="if(event.key==='Enter')saveItem('flow')">
+        <div class="af-row">
+          <select class="af-sel" id="af-flow-status"><option value="done">✅ Done</option><option value="progress">🟠 Progress</option><option value="proposal" selected>⚪ Proposal</option></select>
+          <button class="af-save" onclick="saveItem('flow')">Save</button>
+        </div>
+      </div>
+      <div class="legend">
+        <div class="leg"><div class="ldot done"></div>Done</div>
+        <div class="leg"><div class="ldot progress"></div>In Progress</div>
+        <div class="leg"><div class="ldot proposal"></div>Proposal</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const ADMIN_PW='ersterishere';
+let isAdmin=false,loginMode='admin',theme='night';
+
+const DEFAULTS={
+  alpha:[
+    {name:'V-Bank Munich',desc:'Custodian · BaFin · ISIN Depot',status:'done'},
+    {name:'Cashlink',desc:'Tokenizer · eWpG Registrar · Stellar ✅',status:'done'},
+    {name:'BCP VC Invest I GmbH',desc:'SPV · Issuer · Triton Capital · 5M LP',status:'done'},
+    {name:'Katzorke Law',desc:'Legal Setup · Handelsregister ✅',status:'done'},
+    {name:'V-Bank Due Diligence',desc:'In progress · Go-Live pending',status:'progress'}
+  ],
+  beta:[
+    {name:'tokenforge TokenSuite',desc:'White-Label SaaS · API-first · ISO 27001',status:'progress'},
+    {name:'KYC / KYB / AML',desc:'IDnow · WebID · Postident · PEP',status:'proposal'},
+    {name:'Custody & Wallet',desc:'Tangany · Nyala · WalletConnect',status:'proposal'},
+    {name:'Payments',desc:'SEPA · Stripe · PayPal · Stablecoins',status:'proposal'},
+    {name:'Secondary Market',desc:'z1x · DLT Marketplace',status:'proposal'}
+  ],
+  gamma:[
+    {name:'ERSTER Agent-2-Agent API',desc:'REST API · OAuth 2.0 · JSON',status:'proposal'},
+    {name:'AI Platform Connectors',desc:'Claude · ChatGPT · Moltbook · Custom',status:'proposal'},
+    {name:'Compliance Engine',desc:'MiFID II · eWpG · AI Act ready',status:'proposal'},
+    {name:'SDK Endpoints',desc:'screen_token · recommend · settle · kyc',status:'proposal'},
+    {name:'KFW IT Förderung',desc:'Grant application · Q1 2026',status:'proposal'}
+  ],
+  timeline:[
+    {name:'Stellar Integration & Cashlink Onboarding',desc:'Feb–Mar 2025',status:'done'},
+    {name:'Galaxy Grant 1.2M · SPV Incorporated',desc:'May–Jun 2025',status:'done'},
+    {name:'Triton Capital · Prospectus · Bank Account',desc:'Sept–Dec 2025',status:'done'},
+    {name:'V-Bank Due Diligence · Go-Live',desc:'Dec 2025–Mar 2026',status:'progress'},
+    {name:'Stellar Deal Review · tokenforge · KFW',desc:'Mar 2026',status:'progress'},
+    {name:'Platform Public Sales · 20x 200K Tickets',desc:'Feb–Mar 2026',status:'proposal'},
+    {name:'Milestone 1 & 2 · VC Fund #2 & #3',desc:'2026–2030',status:'proposal'}
+  ],
+  partners:[
+    {name:'Stellar Foundation',desc:'',status:'done'},
+    {name:'V-Bank Munich',desc:'',status:'done'},
+    {name:'Cashlink',desc:'',status:'done'},
+    {name:'tokenforge',desc:'',status:'progress'},
+    {name:'PwC Germany',desc:'',status:'progress'},
+    {name:'Jones Day Frankfurt',desc:'',status:'done'}
+  ],
+  compliance:[
+    {name:'IDnow',desc:'Video KYC',status:'done'},
+    {name:'WebID',desc:'Online Ident',status:'done'},
+    {name:'Postident',desc:'Deutsche Post',status:'done'},
+    {name:'Cashlink',desc:'eWpG Register',status:'done'},
+    {name:'Tangany',desc:'Custody',status:'proposal'},
+    {name:'Jones Day',desc:'Legal · Frankfurt',status:'done'}
+  ],
+  docs:[],
+  grant:[
+    {name:'Investor Onboarding Portal + AI Connector',amt:85000,status:'progress'},
+    {name:'tokenforge Setup + Vorauszahlung',amt:36500,status:'progress'},
+    {name:'tokenforge Betrieb 6 Jahre',amt:28800,status:'progress'},
+    {name:'Asset Tax Audit',amt:15500,status:'progress'},
+    {name:'Tax Buffer 25%',amt:34250,status:'progress'}
+  ],
+  kfw:[
+    {name:'KFW IT Förderung — Digitalisierung',amt:50000,status:'proposal'},
+    {name:'KFW Innovationskredit',amt:100000,status:'proposal'}
+  ],
+  mvp:[
+    {name:'5M€',desc:'Fund 1 · Triton Capital'},
+    {name:'200K',desc:'Min. Ticket · Alpha'},
+    {name:'20x',desc:'Investor Tickets · Alpha'},
+    {name:'eWpG',desc:'Regulatory Framework'},
+    {name:'185K€',desc:'Stellar Grant · Go-Live'},
+    {name:'Q1',desc:'2026 · Go-Live Target'}
+  ],
+  target:[
+    {name:'25M€',desc:'Target AUM on Stellar'},
+    {name:'3',desc:'Distribution Channels'},
+    {name:'6yr',desc:'2026–2032 Operations'},
+    {name:'3',desc:'Emissions · 5M+10M+10M'},
+    {name:'649K€',desc:'Milestones Budget'},
+    {name:'AI',desc:'Gamma · Agent Distribution'}
+  ],
+  flow:[
+    {name:'Discovery',desc:'V-Bank depot / Erster / AI agent',status:'done'},
+    {name:'KYC/KYB',desc:'IDnow · WebID · Postident · PEP · AML',status:'done'},
+    {name:'Wallet',desc:'WalletConnect or Tangany custody',status:'done'},
+    {name:'Investment',desc:'SEPA / Stripe / Stablecoin · DocuSign',status:'progress'},
+    {name:'Minting',desc:'Cashlink on Stellar · ISIN assigned',status:'progress'},
+    {name:'Settlement',desc:'Instant on-chain · Dividends · z1x',status:'proposal'}
+  ],
+  metrics:{
+    alpha:{ticket:200000, investors:25},
+    beta:{ticket:15000, investors:200},
+    gamma:{ticket:5000, investors:800}
+  },
+  funnel:[
+    {name:'Level 2 Ventures',desc:'VC · Seed Stage',status:'progress'},
+    {name:'Family Office Haniel',desc:'Family Office · Multi-Asset',status:'progress'},
+    {name:'Family Office Flossbach von Storch',desc:'Family Office · Asset Manager',status:'progress'},
+    {name:'HNWI Jacek Bajorek',desc:'HNWI · Private Investor',status:'proposal'},
+  ],
+  chmilestones:{
+    alpha:[
+      {name:'V-Bank Depot eröffnet',date:'Feb 2025',status:'done'},
+      {name:'Cashlink · Stellar · eWpG registriert',date:'Mar 2025',status:'done'},
+      {name:'SPV BCP VC Invest I GmbH',date:'Jun 2025',status:'done'},
+      {name:'Triton Capital · 5M LP',date:'Dec 2025',status:'done'},
+      {name:'V-Bank Due Diligence · Go-Live',date:'Mar 2026',status:'progress'},
+      {name:'Erste 20x 200K Tickets',date:'Q2 2026',status:'proposal'}
+    ],
+    beta:[
+      {name:'tokenforge Vertragsabschluss',date:'Q1 2026',status:'progress'},
+      {name:'KYC/KYB/AML Integration',date:'Q2 2026',status:'proposal'},
+      {name:'Custody & Wallet Live',date:'Q2 2026',status:'proposal'},
+      {name:'SEPA & Stripe Payments',date:'Q3 2026',status:'proposal'},
+      {name:'Erster Platform Launch',date:'Q3 2026',status:'proposal'},
+      {name:'Secondary Market (z1x)',date:'Q4 2026',status:'proposal'}
+    ],
+    gamma:[
+      {name:'A2A API Spec & OAuth 2.0',date:'Q2 2026',status:'proposal'},
+      {name:'Claude & Moltbook Connector',date:'Q2 2026',status:'proposal'},
+      {name:'MCP Server · x402 Integration',date:'Q3 2026',status:'proposal'},
+      {name:'Compliance Engine (MiFID II)',date:'Q3 2026',status:'proposal'},
+      {name:'SDK Endpoints live',date:'Q4 2026',status:'proposal'},
+      {name:'Gamma Distribution live',date:'Q1 2027',status:'proposal'}
+    ]
+  }
+};
+
+function load(k){try{const s=localStorage.getItem('bcp_'+k);if(s)return JSON.parse(s);if(DEFAULTS[k]){const d=DEFAULTS[k];return Array.isArray(d)?d.map(i=>({...i})):JSON.parse(JSON.stringify(d));}return[];}catch(e){if(DEFAULTS[k]){const d=DEFAULTS[k];return Array.isArray(d)?d.map(i=>({...i})):JSON.parse(JSON.stringify(d));}return[];}}
+function save(k,d){try{localStorage.setItem('bcp_'+k,JSON.stringify(d))}catch(e){}}
+
+function renderAll(){
+  ['alpha','beta','gamma'].forEach(k=>renderTech(k));
+  renderTimeline();renderDocs();renderFlow();renderFunnel();
+  renderStats('mvp');renderStats('target');
+  ['alpha','beta','gamma'].forEach(ch=>renderChannelMetrics(ch));
+  setTimeout(renderArch,50);
+  setTimeout(renderBudget,80);
+}
+
+// ── CHANNEL METRICS ──
+function loadMetrics(){
+  try{const s=localStorage.getItem('bcp_metrics');return s?JSON.parse(s):JSON.parse(JSON.stringify(DEFAULTS.metrics));}
+  catch(e){return JSON.parse(JSON.stringify(DEFAULTS.metrics));}
+}
+function saveMetrics(m){try{localStorage.setItem('bcp_metrics',JSON.stringify(m))}catch(e){}}
+
+function formatMetricVal(n){
+  if(n>=1000000) return (n/1000000).toFixed(1).replace(/\.0$/,'')+'M€';
+  if(n>=1000) return Math.round(n/1000)+'K€';
+  return n+'€';
+}
+function formatInvestors(n){
+  if(n>=1000) return (n/1000).toFixed(1).replace(/\.0$/,'')+'K';
+  return ''+n;
+}
+
+function renderChannelMetrics(ch){
+  const el=document.getElementById('metrics-'+ch);
+  if(!el)return;
+  const m=loadMetrics();
+  const d=m[ch]||{ticket:0,investors:0};
+  const total=d.ticket*d.investors;
+
+  const colors={alpha:'#4ade80',beta:'#a78bfa',gamma:'#f87171'};
+  const c=colors[ch]||'#6b9bd2';
+
+  el.innerHTML=`
+    <div class="ch-met">
+      <div class="ch-met-lbl">Avg. Ticket</div>
+      <div class="ch-met-val" id="met-${ch}-ticket" title="${isAdmin?'Click to edit':''}">${formatMetricVal(d.ticket)}</div>
+    </div>
+    <div class="ch-met">
+      <div class="ch-met-lbl">Investors</div>
+      <div class="ch-met-val" id="met-${ch}-investors" title="${isAdmin?'Click to edit':''}">${formatInvestors(d.investors)}</div>
+    </div>
+    <div class="ch-met">
+      <div class="ch-met-lbl">Total Potential</div>
+      <div class="ch-met-val auto" style="color:${c}">${formatMetricVal(total)}</div>
+    </div>`;
+
+  if(isAdmin){
+    // Ticket edit
+    const ticketEl=document.getElementById('met-'+ch+'-ticket');
+    ticketEl.style.cursor='text';
+    ticketEl.addEventListener('click',function(){
+      this.contentEditable='true';
+      this.style.outline='none';
+      this.style.borderBottom='1px solid #6b9bd2';
+      const orig=this.textContent;
+      // show raw number for editing
+      const raw=loadMetrics()[ch].ticket;
+      this.textContent=raw;
+      this.focus();
+      const range=document.createRange();range.selectNodeContents(this);
+      const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
+      const commit=()=>{
+        this.contentEditable='false';this.style.borderBottom='none';
+        const val=parseFloat(this.textContent.replace(/[^0-9.]/g,''));
+        if(!isNaN(val)&&val>=0){const m=loadMetrics();m[ch].ticket=val;saveMetrics(m);}
+        renderChannelMetrics(ch);
+      };
+      this.onblur=commit;
+      this.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();this.blur();}if(e.key==='Escape'){this.textContent=orig;this.blur();}};
+    });
+
+    // Investors edit
+    const invEl=document.getElementById('met-'+ch+'-investors');
+    invEl.style.cursor='text';
+    invEl.addEventListener('click',function(){
+      this.contentEditable='true';
+      this.style.outline='none';
+      this.style.borderBottom='1px solid #6b9bd2';
+      const raw=loadMetrics()[ch].investors;
+      this.textContent=raw;
+      this.focus();
+      const range=document.createRange();range.selectNodeContents(this);
+      const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
+      const commit=()=>{
+        this.contentEditable='false';this.style.borderBottom='none';
+        const val=parseInt(this.textContent.replace(/[^0-9]/g,''));
+        if(!isNaN(val)&&val>=0){const m=loadMetrics();m[ch].investors=val;saveMetrics(m);}
+        renderChannelMetrics(ch);
+      };
+      this.onblur=commit;
+      this.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();this.blur();}if(e.key==='Escape'){this.blur();}};
+    });
+  }
+}
+
+// ── INLINE EDIT HELPER ──
+function makeEditable(el, k, i, field){
+  if(!isAdmin) return;
+  el.contentEditable='true';
+  el.style.outline='none';
+  el.style.borderBottom='1px solid #6b9bd2';
+  el.style.minWidth='20px';
+  el.focus();
+  // select all text
+  const range=document.createRange();range.selectNodeContents(el);
+  const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
+  function commit(){
+    el.contentEditable='false';
+    el.style.borderBottom='none';
+    const d=load(k);
+    if(d[i]) d[i][field]=el.textContent.trim()||d[i][field];
+    save(k,d);
+  }
+  el.onblur=commit;
+  el.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();el.blur();}if(e.key==='Escape'){el.textContent=load(k)[i][field];el.blur();}};
+}
+
+function renderFlow(){
+  const d=load('flow'),el=document.getElementById('list-flow');
+  if(!el)return;
+  el.innerHTML='';
+  d.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='flow-row';
+    div.style.position='relative';
+    div.dataset.idx=i;
+    div.innerHTML=`
+      ${isAdmin?`<span class="drag-handle" data-key="flow" title="Drag to reorder">⠿</span>`:''}
+      <div class="fn" style="background:${item.status==='done'?'rgba(34,197,94,0.15)':item.status==='progress'?'rgba(245,158,11,0.15)':'rgba(255,255,255,0.07)'}">${i+1}</div>
+      <div class="ft">
+        <span class="fh editable-field" style="color:${item.status==='done'?'#4ade80':item.status==='progress'?'#fbbf24':'#a78bfa'}" data-k="flow" data-i="${i}" data-f="name">${item.name}</span>
+        <span style="opacity:.4"> → </span>
+        <span class="editable-field" data-k="flow" data-i="${i}" data-f="desc">${item.desc}</span>
+      </div>
+      <div class="sdot ${item.status}${isAdmin?' clickable':''}" style="flex-shrink:0;margin-left:6px;margin-top:0;align-self:center" onclick="${isAdmin?`cycleDot(this,'flow',${i})`:''}"></div>
+      ${isAdmin?`<span class="idel" style="display:inline;margin-left:4px;align-self:center" onclick="delItem('flow',${i})">✕</span>`:''}`;
+    el.appendChild(div);
+  });
+  if(isAdmin){wireEditable(el);wireDrag(el,'flow');}
+}
+
+function renderTech(k){
+  const d=load(k),el=document.getElementById('list-'+k);
+  if(!el)return;
+  el.innerHTML='';
+  d.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='tech-item';
+    div.dataset.idx=i;
+    div.innerHTML=`
+      ${isAdmin?`<span class="drag-handle" data-key="${k}" title="Drag to reorder">⠿</span>`:''}
+      <div class="sdot ${item.status}${isAdmin?' clickable':''}" onclick="${isAdmin?`cycleDot(this,'${k}',${i})`:''}"></div>
+      <div class="tech-info">
+        <div class="tech-name editable-field" data-k="${k}" data-i="${i}" data-f="name">${item.name}</div>
+        <div class="tech-desc editable-field" data-k="${k}" data-i="${i}" data-f="desc">${item.desc}</div>
+      </div>
+      <span class="idel" style="display:${isAdmin?'inline':'none'}" onclick="delItem('${k}',${i})">✕</span>`;
+    el.appendChild(div);
+  });
+  if(isAdmin){wireEditable(el);wireDrag(el,k);}
+}
+
+function renderTimeline(){
+  const d=load('timeline'),el=document.getElementById('list-timeline');
+  if(!el)return;
+  el.innerHTML='';
+  d.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='tl-item';
+    div.dataset.idx=i;
+    div.innerHTML=`
+      ${isAdmin?`<span class="drag-handle" data-key="timeline" title="Drag to reorder">⠿</span>`:''}
+      <div class="tl-dot ${item.status}" style="cursor:${isAdmin?'pointer':'default'}" onclick="${isAdmin?`cycleTlDot(this,'timeline',${i})`:''}"></div>
+      <div class="tl-r">
+        <div class="tl-date editable-field" data-k="timeline" data-i="${i}" data-f="desc">${item.desc}</div>
+        <div class="tl-lbl">
+          <span class="editable-field" data-k="timeline" data-i="${i}" data-f="name">${item.name}</span>
+          ${isAdmin?`<span class="tl-del" style="display:inline" onclick="delItem('timeline',${i})">✕</span>`:''}
+        </div>
+      </div>`;
+    el.appendChild(div);
+  });
+  if(isAdmin){wireEditable(el);wireDrag(el,'timeline');}
+}
+
+function cycleTlDot(dot,k,i){
+  const states=['done','progress','proposal'];
+  const d=load(k);
+  d[i].status=states[(states.indexOf(d[i].status)+1)%3];
+  save(k,d);renderTimeline();
+}
+
+function renderFunnel(){
+  const d=load('funnel'),el=document.getElementById('list-funnel');
+  if(!el)return;
+  el.innerHTML='';
+  d.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='tl-item';
+    div.dataset.idx=i;
+    div.innerHTML=`
+      ${isAdmin?`<span class="drag-handle" data-key="funnel" title="Drag to reorder">⠿</span>`:''}
+      <div class="tl-dot ${item.status}" style="cursor:${isAdmin?'pointer':'default'}" onclick="${isAdmin?`cycleFunnelDot(this,${i})`:''}"></div>
+      <div class="tl-r">
+        <div class="tl-date editable-field" data-k="funnel" data-i="${i}" data-f="desc">${item.desc}</div>
+        <div class="tl-lbl">
+          <span class="editable-field" data-k="funnel" data-i="${i}" data-f="name">${item.name}</span>
+          ${isAdmin?`<span class="tl-del" style="display:inline" onclick="delItem('funnel',${i})">✕</span>`:''}
+        </div>
+      </div>`;
+    el.appendChild(div);
+  });
+  if(isAdmin){wireEditable(el);wireDrag(el,'funnel');}
+}
+
+function cycleFunnelDot(dot,i){
+  const states=['done','progress','proposal'];
+  const d=load('funnel');
+  d[i].status=states[(states.indexOf(d[i].status)+1)%3];
+  save('funnel',d);renderFunnel();
+}
+
+function renderPartners(){
+  const d=load('partners'),el=document.getElementById('list-partners');
+  if(!el)return;
+  el.innerHTML='';
+  d.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='partner-item';
+    const dotC=item.status==='done'?'#22c55e':item.status==='progress'?'#f59e0b':'#3a3a4a';
+    const logoHtml=item.desc?`<img class="p-logo" src="${item.desc}" onerror="this.style.display='none'">`:`<div class="p-placeholder">${item.name.slice(0,2).toUpperCase()}</div>`;
+    div.innerHTML=`${logoHtml}
+      <div class="p-name editable-field" data-k="partners" data-i="${i}" data-f="name">${item.name}</div>
+      <div style="width:7px;height:7px;border-radius:50%;background:${dotC};flex-shrink:0;cursor:${isAdmin?'pointer':'default'}" onclick="${isAdmin?`cyclePartnerStatus('partners',${i})`:''}"></div>
+      ${isAdmin?`<span class="p-del" style="display:inline" onclick="delItem('partners',${i})">✕</span>`:''}`;
+    el.appendChild(div);
+  });
+  if(isAdmin) wireEditable(el);
+}
+
+function cyclePartnerStatus(k,i){
+  const states=['done','progress','proposal'];
+  const d=load(k);
+  d[i].status=states[(states.indexOf(d[i].status)+1)%3];
+  save(k,d);renderPartners();
+}
+
+function renderCompliance(){
+  const d=load('compliance'),el=document.getElementById('list-compliance');
+  if(!el)return;
+  el.innerHTML='';
+  d.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='comp-item';
+    div.innerHTML=`
+      <div class="sdot ${item.status}${isAdmin?' clickable':''}" style="margin-top:3px" onclick="${isAdmin?`cycleDot(this,'compliance',${i})`:''}"></div>
+      <div class="comp-info">
+        <div class="comp-name editable-field" data-k="compliance" data-i="${i}" data-f="name">${item.name}</div>
+        <div class="comp-role editable-field" data-k="compliance" data-i="${i}" data-f="desc">${item.desc}</div>
+      </div>
+      ${isAdmin?`<span class="comp-del" style="display:inline" onclick="delItem('compliance',${i})">✕</span>`:''}`;
+    el.appendChild(div);
+  });
+  if(isAdmin) wireEditable(el);
+}
+
+function wireEditable(container){
+  container.querySelectorAll('.editable-field').forEach(el=>{
+    el.style.cursor='text';
+    el.title='Click to edit';
+    el.onclick=function(e){
+      e.stopPropagation();
+      makeEditable(this, this.dataset.k, parseInt(this.dataset.i), this.dataset.f);
+    };
+  });
+}
+
+// ── DRAG & DROP ENGINE ──
+let dragState=null;
+
+function wireDrag(container, key){
+  container.querySelectorAll('.drag-handle').forEach(handle=>{
+    handle.addEventListener('mousedown', e=>{
+      if(e.button!==0)return;
+      e.preventDefault();
+      e.stopPropagation();
+      const row=handle.closest('[data-idx]');
+      if(!row)return;
+      const rect=row.getBoundingClientRect();
+
+      // Create ghost
+      const ghost=row.cloneNode(true);
+      ghost.className='drag-ghost';
+      ghost.style.width=rect.width+'px';
+      ghost.style.height=rect.height+'px';
+      ghost.style.left=rect.left+'px';
+      ghost.style.top=rect.top+'px';
+      ghost.style.padding=getComputedStyle(row).padding;
+      ghost.style.display='flex';
+      ghost.style.alignItems='center';
+      ghost.style.gap='8px';
+      document.body.appendChild(ghost);
+      row.classList.add('dragging-source');
+
+      dragState={
+        key, container, ghost, row,
+        fromIdx:parseInt(row.dataset.idx),
+        toIdx:parseInt(row.dataset.idx),
+        offsetX:e.clientX-rect.left,
+        offsetY:e.clientY-rect.top
+      };
+
+      document.addEventListener('mousemove', onDragMove);
+      document.addEventListener('mouseup', onDragEnd);
+    });
+  });
+}
+
+function onDragMove(e){
+  if(!dragState)return;
+  const {ghost,container,row}=dragState;
+  ghost.style.left=(e.clientX-dragState.offsetX)+'px';
+  ghost.style.top=(e.clientY-dragState.offsetY)+'px';
+
+  // Find target row
+  const rows=[...container.querySelectorAll('[data-idx]')].filter(r=>r!==row);
+  let found=false;
+  rows.forEach(r=>{
+    r.classList.remove('drag-over-top','drag-over-bottom');
+    const rect=r.getBoundingClientRect();
+    const mid=rect.top+rect.height/2;
+    if(e.clientY>=rect.top&&e.clientY<=rect.bottom){
+      found=true;
+      if(e.clientY<mid){
+        r.classList.add('drag-over-top');
+        dragState.toIdx=parseInt(r.dataset.idx);
+        dragState.insertBefore=true;
+      } else {
+        r.classList.add('drag-over-bottom');
+        dragState.toIdx=parseInt(r.dataset.idx);
+        dragState.insertBefore=false;
+      }
+    }
+  });
+}
+
+function onDragEnd(){
+  if(!dragState)return;
+  document.removeEventListener('mousemove',onDragMove);
+  document.removeEventListener('mouseup',onDragEnd);
+
+  const {key,container,ghost,row,fromIdx,toIdx,insertBefore}=dragState;
+  ghost.remove();
+  row.classList.remove('dragging-source');
+  container.querySelectorAll('[data-idx]').forEach(r=>r.classList.remove('drag-over-top','drag-over-bottom'));
+
+  if(fromIdx!==toIdx){
+    const d=load(key);
+    const item=d.splice(fromIdx,1)[0];
+    let insertAt=toIdx;
+    if(fromIdx<toIdx) insertAt=insertBefore?toIdx-1:toIdx;
+    else insertAt=insertBefore?toIdx:toIdx+1;
+    insertAt=Math.max(0,Math.min(d.length,insertAt));
+    d.splice(insertAt,0,item);
+    save(key,d);
+    // Re-render the right list
+    if(['alpha','beta','gamma'].includes(key)) renderTech(key);
+    else if(key==='timeline') renderTimeline();
+    else if(key==='funnel') renderFunnel();
+    else if(key==='flow') renderFlow();
+    else if(key==='grant'||key==='kfw') renderFinStream(key);
+  }
+  dragState=null;
+}
+
+function renderStats(k){
+  const d=load(k);
+  const grid=document.getElementById('list-'+k);
+  if(!grid)return;
+  grid.innerHTML='';
+  d.forEach((item,i)=>{
+    const div=document.createElement('div');
+    div.className='stat-cell';
+    div.style.position='relative';
+    div.innerHTML=`
+      <div class="stat-num editable-field" data-k="${k}" data-i="${i}" data-f="name">${item.name}</div>
+      <div class="stat-lbl editable-field" data-k="${k}" data-i="${i}" data-f="desc">${item.desc}</div>
+      ${isAdmin?`<span style="position:absolute;top:4px;right:6px;font-size:10px;color:#f87171;cursor:pointer;opacity:.5;z-index:2" onclick="delStat('${k}',${i})">✕</span>`:''}`;
+    grid.appendChild(div);
+  });
+  if(isAdmin) wireEditable(grid);
+}
+
+function editStat(k,i){} // no longer needed — handled by wireEditable
+
+function delStat(k,i){
+  const d=load(k);d.splice(i,1);save(k,d);renderStats(k);
+}
+
+function saveStat(k){
+  const nameEl=document.getElementById('af-'+k+'-name');
+  const descEl=document.getElementById('af-'+k+'-desc');
+  const name=nameEl.value.trim();
+  const desc=descEl.value.trim();
+  if(!name)return;
+  const d=load(k);
+  d.push({name,desc});
+  save(k,d);
+  nameEl.value='';descEl.value='';
+  document.getElementById('form-'+k).style.display='none';
+  renderStats(k);
+}
+
+function cycleDot(dot,k,i){
+  if(!isAdmin)return;
+  const states=['done','progress','proposal'];
+  const d=load(k);
+  d[i].status=states[(states.indexOf(d[i].status)+1)%3];
+  save(k,d);renderAll();
+}
+
+function delItem(k,i){
+  const d=load(k);d.splice(i,1);save(k,d);renderAll();
+}
+
+function showForm(k){
+  const f=document.getElementById('form-'+k);
+  if(f)f.style.display=f.style.display==='block'?'none':'block';
+}
+
+function saveItem(k){
+  const name=document.getElementById('af-'+k+'-name').value.trim();
+  const desc=document.getElementById('af-'+k+'-desc').value.trim();
+  const status=document.getElementById('af-'+k+'-status').value;
+  if(!name)return;
+  const d=load(k);d.push({name,desc,status});save(k,d);
+  document.getElementById('af-'+k+'-name').value='';
+  document.getElementById('af-'+k+'-desc').value='';
+  document.getElementById('form-'+k).style.display='none';
+  renderAll();
+}
+
+// LOGIN
+function setLoginMode(m){
+  loginMode=m;
+  document.querySelectorAll('.login-tab').forEach((t,i)=>t.classList.toggle('active',i===(m==='admin'?0:1)));
+  document.getElementById('pw-section').style.display=m==='admin'?'block':'none';
+  document.getElementById('view-note').style.display=m==='view'?'block':'none';
+  document.getElementById('login-error').style.display='none';
+}
+
+function doLogin(){
+  if(loginMode==='admin'&&document.getElementById('pw-input').value!==ADMIN_PW){
+    document.getElementById('login-error').style.display='block';return;
+  }
+  isAdmin=loginMode==='admin';
+  document.getElementById('login-overlay').style.display='none';
+  const b=document.getElementById('mode-badge');
+  b.textContent=isAdmin?'ADMIN':'VIEW';b.className='mode-badge '+(isAdmin?'admin':'view');
+  document.querySelectorAll('.add-btn').forEach(btn=>btn.style.display=isAdmin?'inline-block':'none');
+  document.querySelectorAll('.fin-add-btn').forEach(btn=>btn.style.display=isAdmin?'inline-block':'none');
+  document.getElementById('docs-add-btn').style.display=isAdmin?'inline-block':'none';
+  document.getElementById('flow-add-btn').style.display=isAdmin?'inline-block':'none';
+  renderAll();
+}
+
+function doLogout(){
+  document.getElementById('login-overlay').style.display='flex';
+  document.getElementById('pw-input').value='';
+  document.getElementById('login-error').style.display='none';
+  setLoginMode('admin');
+}
+
+// THEME
+function toggleTheme(){
+  theme=theme==='night'?'day':'night';
+  document.body.className=theme;
+  document.getElementById('t-icon').textContent=theme==='night'?'☀':'☾';
+  document.getElementById('t-lbl').textContent=theme==='night'?'Day':'Night';
+  try{localStorage.setItem('bcp_theme',theme)}catch(e){}
+  drawPie();
+}
+
+function loadProductImage(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const img=document.getElementById('product-img');
+    const ph=document.getElementById('product-placeholder');
+    img.src=ev.target.result;
+    img.style.display='block';
+    ph.style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// FINANCING STREAMS
+function formatEur(n){
+  if(n>=1000000) return (n/1000000).toFixed(n%1000000===0?0:2).replace('.',',')+' Mio€';
+  if(n>=1000) return Math.round(n/1000)+'K€';
+  return n+'€';
+}
+
+function showFinForm(k){
+  const f=document.getElementById('form-'+k);
+  f.style.display=f.style.display==='block'?'none':'block';
+}
+
+function saveFinItem(k){
+  const name=document.getElementById('af-'+k+'-name').value.trim();
+  const amt=parseFloat(document.getElementById('af-'+k+'-amt').value)||0;
+  const status=document.getElementById('af-'+k+'-status').value;
+  if(!name||!amt)return;
+  const d=load(k);
+  d.push({name,amt,status});
+  save(k,d);
+  document.getElementById('af-'+k+'-name').value='';
+  document.getElementById('af-'+k+'-amt').value='';
+  document.getElementById('form-'+k).style.display='none';
+  renderFinStream(k);
+}
+
+function delFinItem(k,i){
+  const d=load(k);d.splice(i,1);save(k,d);renderFinStream(k);
+}
+
+function renderFinStream(k){
+  const d=load(k);
+  const el=document.getElementById('list-'+k);
+  const totalEl=document.getElementById(k+'-total');
+  if(!el)return;
+  el.innerHTML='';
+  let total=0;
+  d.forEach((item,i)=>{
+    total+=item.amt||0;
+    const dotC=item.status==='done'?'#22c55e':item.status==='progress'?'#f59e0b':'#555';
+    const div=document.createElement('div');
+    div.className='fin-item';
+    div.dataset.idx=i;
+    div.innerHTML=`
+      ${isAdmin?`<span class="drag-handle" data-key="${k}" title="Drag to reorder">⠿</span>`:''}
+      <div class="sdot" style="background:${dotC};box-shadow:none;flex-shrink:0;cursor:${isAdmin?'pointer':'default'}"
+        onclick="${isAdmin?`cycleFinStatus('${k}',${i})`:''}"></div>
+      <div class="fin-item-name editable-field" data-k="${k}" data-i="${i}" data-f="name">${item.name}</div>
+      <div class="fin-item-amt editable-field" data-k="${k}" data-i="${i}" data-f="amt">${formatEur(item.amt)}</div>
+      ${isAdmin?`<span style="font-size:10px;color:#f87171;cursor:pointer;opacity:.5;margin-left:4px" onclick="delFinItem('${k}',${i})">✕</span>`:''}`;
+    el.appendChild(div);
+  });
+  totalEl.textContent=formatEur(total);
+  if(isAdmin){wireEditableFinance(el,k);wireDrag(el,k);}
+  drawPie();
+}
+
+function wireEditableFinance(container,k){
+  container.querySelectorAll('.editable-field').forEach(el=>{
+    el.style.cursor='text';
+    el.title='Click to edit';
+    el.onclick=function(e){
+      e.stopPropagation();
+      const field=this.dataset.f;
+      const idx=parseInt(this.dataset.i);
+      if(field==='amt'){
+        // For amount: use contenteditable but save as number
+        this.contentEditable='true';
+        this.style.outline='none';
+        this.style.borderBottom='1px solid #6b9bd2';
+        const orig=this.textContent;
+        this.focus();
+        const range=document.createRange();range.selectNodeContents(this);
+        const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
+        this.onblur=()=>{
+          this.contentEditable='false';this.style.borderBottom='none';
+          const raw=this.textContent.replace(/[^0-9.]/g,'');
+          const num=parseFloat(raw);
+          if(!isNaN(num)&&num>0){
+            const d=load(k);d[idx].amt=num;save(k,d);renderFinStream(k);
+          } else {this.textContent=orig;}
+        };
+        this.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();this.blur();}if(e.key==='Escape'){this.textContent=orig;this.blur();}};
+      } else {
+        makeEditable(this,k,idx,field);
+        // After blur re-render to update total
+        const origBlur=this.onblur;
+        this.onblur=function(){origBlur&&origBlur.call(this);setTimeout(()=>renderFinStream(k),50);};
+      }
+    };
+  });
+}
+
+function cycleFinStatus(k,i){
+  const states=['done','progress','proposal'];
+  const d=load(k);
+  d[i].status=states[(states.indexOf(d[i].status)+1)%3];
+  save(k,d);renderFinStream(k);
+}
+
+function drawPie(){
+  const canvas=document.getElementById('funding-pie');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const grantData=load('grant');
+  const kfwData=load('kfw');
+  const grantTotal=grantData.reduce((s,i)=>s+(i.amt||0),0);
+  const kfwTotal=kfwData.reduce((s,i)=>s+(i.amt||0),0);
+
+  // Build slices: each line item as its own slice, grouped by stream
+  const grantColors=['#34d399','#6ee7b7','#a7f3d0','#d1fae5','#059669','#10b981'];
+  const kfwColors=['#fbbf24','#fcd34d','#fde68a','#f59e0b','#d97706'];
+
+  const slices=[];
+  grantData.forEach((item,i)=>slices.push({label:item.name,amt:item.amt||0,color:grantColors[i%grantColors.length],stream:'grant'}));
+  kfwData.forEach((item,i)=>slices.push({label:item.name,amt:item.amt||0,color:kfwColors[i%kfwColors.length],stream:'kfw'}));
+
+  const total=slices.reduce((s,sl)=>s+sl.amt,0);
+  if(total===0){
+    ctx.fillStyle='rgba(255,255,255,0.08)';
+    ctx.beginPath();ctx.arc(W/2,H/2,70,0,Math.PI*2);ctx.fill();
+    return;
+  }
+
+  const cx=W/2,cy=H/2,r=76,inner=42;
+  let angle=-Math.PI/2;
+
+  slices.forEach(sl=>{
+    if(!sl.amt)return;
+    const sweep=(sl.amt/total)*Math.PI*2;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,angle,angle+sweep);
+    ctx.closePath();
+    ctx.fillStyle=sl.color;
+    ctx.fill();
+    // thin separator
+    ctx.strokeStyle=theme==='night'?'rgba(13,22,37,0.8)':'rgba(240,242,245,0.9)';
+    ctx.lineWidth=2;
+    ctx.stroke();
+    angle+=sweep;
+  });
+
+  // donut hole
+  ctx.beginPath();ctx.arc(cx,cy,inner,0,Math.PI*2);
+  ctx.fillStyle=theme==='night'?'#0d1625':'#f0f2f5';
+  ctx.fill();
+
+  // center text
+  ctx.fillStyle=theme==='night'?'rgba(255,255,255,0.9)':'#1a2233';
+  ctx.font='bold 14px IBM Plex Sans, sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(formatEur(total),cx,cy);
+
+  // legend
+  const leg=document.getElementById('pie-legend');
+  if(leg){
+    leg.innerHTML='';
+    // Group headers + items
+    [{label:'Grant Proposal',color:'#34d399',items:grantData,totAmt:grantTotal},
+     {label:'KFW Programme',color:'#fbbf24',items:kfwData,totAmt:kfwTotal}
+    ].forEach(group=>{
+      const hdr=document.createElement('div');
+      hdr.style.cssText='display:flex;align-items:center;gap:7px;margin-top:4px';
+      hdr.innerHTML=`<div style="width:10px;height:10px;border-radius:2px;background:${group.color};flex-shrink:0"></div>
+        <div style="font-family:IBM Plex Mono,monospace;font-size:9px;letter-spacing:1px;flex:1;opacity:.6;text-transform:uppercase">${group.label}</div>
+        <div style="font-family:IBM Plex Mono,monospace;font-size:10px;font-weight:600">${formatEur(group.totAmt)}</div>`;
+      leg.appendChild(hdr);
+      group.items.forEach((item,i)=>{
+        const row=document.createElement('div');
+        const c=group.label.includes('Grant')?grantColors[i%grantColors.length]:kfwColors[i%kfwColors.length];
+        row.style.cssText='display:flex;align-items:center;gap:7px;padding-left:17px';
+        row.innerHTML=`<div style="width:6px;height:6px;border-radius:50%;background:${c};flex-shrink:0;opacity:.7"></div>
+          <div style="font-size:10px;flex:1;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.name}</div>
+          <div style="font-family:IBM Plex Mono,monospace;font-size:10px;opacity:.5">${formatEur(item.amt||0)}</div>`;
+        leg.appendChild(row);
+      });
+    });
+  }
+
+  const gtEl=document.getElementById('pie-grand-total');
+  const totalRow=document.getElementById('pie-total-row');
+  if(gtEl){
+    gtEl.textContent=formatEur(total);
+    gtEl.style.color=theme==='night'?'#fff':'#1a2233';
+  }
+  if(totalRow) totalRow.style.borderTopColor=theme==='night'?'rgba(255,255,255,0.06)':'#eef0f5';
+}
+
+// DOCUMENTS
+let docsMode='url';
+let pendingFileData=null;
+
+function toggleDocsForm(){
+  const f=document.getElementById('docs-form');
+  f.style.display=f.style.display==='block'?'none':'block';
+}
+
+function setDocsMode(m){
+  docsMode=m;
+  document.getElementById('docs-url-section').style.display=m==='url'?'block':'none';
+  document.getElementById('docs-file-section').style.display=m==='file'?'block':'none';
+  document.getElementById('mode-url-btn').classList.toggle('active-mode',m==='url');
+  document.getElementById('mode-file-btn').classList.toggle('active-mode',m==='file');
+}
+
+function handleDocFile(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    pendingFileData={name:file.name,data:ev.target.result,size:file.size};
+    document.getElementById('docs-file-label').textContent='✅ '+file.name;
+    if(!document.getElementById('docs-title').value) document.getElementById('docs-title').value=file.name.replace(/\.[^.]+$/,'');
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveDoc(){
+  const title=document.getElementById('docs-title').value.trim();
+  const type=document.getElementById('docs-type').value;
+  if(!title)return;
+  const docs=load('docs');
+  if(docsMode==='url'){
+    const url=document.getElementById('docs-url').value.trim();
+    if(!url)return;
+    docs.push({title,type,url,kind:'url'});
+  } else {
+    if(!pendingFileData)return;
+    docs.push({title,type,url:pendingFileData.data,kind:'file',filename:pendingFileData.name});
+    pendingFileData=null;
+    document.getElementById('docs-file-label').textContent='Click to select · PDF, PPTX, DOCX, XLSX';
+    document.getElementById('docs-file-input').value='';
+  }
+  save('docs',docs);
+  document.getElementById('docs-title').value='';
+  document.getElementById('docs-url').value='';
+  document.getElementById('docs-form').style.display='none';
+  renderDocs();
+}
+
+function delDoc(i){
+  const docs=load('docs');docs.splice(i,1);save('docs',docs);renderDocs();
+}
+
+const DOC_ICONS={pdf:'📄',ppt:'📊',doc:'📝',sheet:'📈',contract:'⚖️',link:'🔗'};
+
+function renderDocs(){
+  const docs=load('docs');
+  const el=document.getElementById('docs-list');
+  if(!el)return;
+  el.innerHTML='';
+  if(!docs.length){
+    el.innerHTML=`<div style="font-family:'IBM Plex Mono',monospace;font-size:9px;opacity:.3;padding:8px 0;text-align:center">${isAdmin?'No documents yet · click + Add':'No documents available'}</div>`;
+    return;
+  }
+  docs.forEach((doc,i)=>{
+    const div=document.createElement('div');
+    div.className='doc-item';
+    div.innerHTML=`<div class="doc-icon">${DOC_ICONS[doc.type]||'📎'}</div>
+    <div class="doc-info"><div class="doc-name">${doc.title}</div></div>
+    <a class="doc-dl" href="${doc.url}" download="${doc.filename||doc.title}" target="_blank" title="Download / Open">↓</a>
+    ${isAdmin?`<span class="doc-del" style="display:inline" onclick="delDoc(${i})">✕</span>`:''}`;
+    el.appendChild(div);
+  });
+}
+
+// ── SERVICE ARCHITECTURE DIAGRAM ──
+let archCollapsed=false;
+function toggleArch(){
+  archCollapsed=!archCollapsed;
+  document.getElementById('arch-body').style.display=archCollapsed?'none':'block';
+  document.getElementById('arch-toggle-btn').textContent=archCollapsed?'▶ Expand':'▼ Collapse';
+}
+
+function renderArch(){
+  const isNight=document.body.classList.contains('night')||theme==='night';
+  const C={
+    bg: isNight?'#0f1117':'#F7F6F4',
+    card: isNight?'#1a1d27':'#FFFFFF',
+    border: isNight?'rgba(255,255,255,0.1)':'#E2E0DD',
+    text: isNight?'#e8eaf0':'#1A1A1A',
+    sub: isNight?'rgba(255,255,255,0.45)':'#6B6560',
+    muted: isNight?'rgba(255,255,255,0.25)':'#A39E98',
+    gold:'#D4A853', green:'#4ade80', violet:'#a78bfa', red:'#f87171'
+  };
+  const d=document.getElementById('arch-diagram');
+  if(!d)return;
+  d.style.background=C.card;
+
+  const box=(x,y,w,title,sub,layer,extra='')=>{
+    const layerC={alpha:C.green,beta:C.violet,gamma:C.gold};
+    const lc=layerC[layer]||'';
+    const badge=layer?`<div style="position:absolute;top:-8px;left:10px;background:${lc};color:#fff;font-size:7px;font-weight:700;letter-spacing:1.2px;padding:2px 8px;border-radius:2px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace">${layer}</div>`:'';
+    const topBorder=layer?`border-top:2.5px solid ${lc};`:'';
+    return `<div style="position:absolute;left:${x}%;top:${y}%;width:${w}%;background:${C.card};border:1px solid ${C.border};${topBorder}border-radius:4px;padding:10px 12px;box-sizing:border-box">${badge}
+      ${title?`<div style="font-size:11px;font-weight:700;color:${C.text};line-height:1.3;margin-bottom:${sub?'3px':'0'}">${title}</div>`:''}
+      ${sub?`<div style="font-size:9px;color:${C.sub};line-height:1.4">${sub}</div>`:''}
+      ${extra}
+    </div>`;
+  };
+
+  const dot=(color,label)=>`<div style="display:flex;align-items:center;gap:5px;margin:2px 0"><div style="width:4px;height:4px;border-radius:50%;background:${color};flex-shrink:0"></div><span style="font-size:9px;color:${C.sub}">${label}</span></div>`;
+
+  const chip=(label)=>`<span style="font-size:7.5px;font-weight:600;color:${C.gold};background:${isNight?'rgba(212,168,83,0.1)':'#FAF5EB'};border:1px solid ${isNight?'rgba(212,168,83,0.3)':'#EDE3CE'};border-radius:2px;padding:1.5px 6px;font-family:'IBM Plex Mono',monospace;margin:1px">${label}</span>`;
+
+  const layerLabel=(x,y,text,color,align='left')=>`<div style="position:absolute;left:${x}%;top:${y}%;font-size:7.5px;font-weight:700;color:${color};letter-spacing:2px;font-family:'IBM Plex Mono',monospace;transform:${align==='center'?'translateX(-50%)':align==='right'?'translateX(-100%)':'none'}">${text}</div>`;
+
+  d.innerHTML=`
+  <!-- SVG Arrows -->
+  <svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none">
+    <defs>
+      ${[C.green,C.violet,C.gold,C.border,C.red,C.sub].map(c=>`<marker id="ma${c.replace(/[#().,]/g,'')}" markerWidth="5" markerHeight="4" refX="4" refY="2" orient="auto"><polygon points="0 0.5,5 2,0 3.5" fill="${c}"/></marker>`).join('')}
+    </defs>
+    <!-- Alpha: VBank ↔ Diamond — zentriert, gleicher Abstand -->
+    <line x1="37%" y1="37%" x2="43%" y2="37%" stroke="${C.green}" stroke-width="1.2" marker-end="url(#ma${C.green.replace(/[#().,]/g,'')})"/>
+    <line x1="43%" y1="40%" x2="37%" y2="40%" stroke="${C.green}" stroke-width="1.2" marker-end="url(#ma${C.green.replace(/[#().,]/g,'')})"/>
+    <!-- VBank → Alpha investors -->
+    <line x1="18%" y1="32%" x2="13%" y2="28%" stroke="${C.green}" stroke-width="0.8" stroke-dasharray="3,3"/>
+    <line x1="18%" y1="38%" x2="13%" y2="42%" stroke="${C.green}" stroke-width="0.8" stroke-dasharray="3,3"/>
+    <!-- Cashlink → Diamond -->
+    <line x1="50%" y1="15%" x2="50%" y2="27%" stroke="${C.border}" stroke-width="0.8" stroke-dasharray="3,3"/>
+    <!-- Diamond → Tokenforge -->
+    <line x1="50%" y1="43%" x2="50%" y2="50%" stroke="${C.border}" stroke-width="0.8" stroke-dasharray="3,3"/>
+    <!-- Tokenforge → Erster -->
+    <line x1="50%" y1="59%" x2="50%" y2="64%" stroke="${C.gold}" stroke-width="1.2" marker-end="url(#ma${C.gold.replace(/[#().,]/g,'')})"/>
+    <!-- Beta: Diamond → BCP -->
+    <line x1="56%" y1="34%" x2="78%" y2="20%" stroke="${C.border}" stroke-width="0.8" stroke-dasharray="3,3"/>
+    <!-- BCP → SPV -->
+    <line x1="87%" y1="22%" x2="87%" y2="29%" stroke="${C.border}" stroke-width="0.8" marker-end="url(#ma${C.border.replace(/[#().,]/g,'')})"/>
+    <!-- SPV → LP -->
+    <line x1="87%" y1="41%" x2="87%" y2="47%" stroke="${C.violet}" stroke-width="0.8" marker-end="url(#ma${C.violet.replace(/[#().,]/g,'')})"/>
+    <!-- LP → Funnel -->
+    <line x1="87%" y1="54%" x2="87%" y2="60%" stroke="${C.border}" stroke-width="0.6" stroke-dasharray="3,3"/>
+    <!-- Gamma: Erster → Agents -->
+    <line x1="42%" y1="79%" x2="30%" y2="73%" stroke="${C.red}" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#ma${C.red.replace(/[#().,]/g,'')})"/>
+    <!-- Erster → Humans -->
+    <line x1="58%" y1="79%" x2="70%" y2="73%" stroke="${C.green}" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#ma${C.green.replace(/[#().,]/g,'')})"/>
+  </svg>
+
+  <!-- Layer Labels -->
+  ${layerLabel(2,2,'DISTRIBUTION LAYER ALPHA',C.green)}
+  ${layerLabel(98,2,'DISTRIBUTION LAYER BETA',C.violet,'right')}
+  ${layerLabel(50,94,'DISTRIBUTION LAYER GAMMA — AGENTIC',C.gold,'center')}
+
+  <!-- Alpha Investors -->
+  ${box(1,16,13,'','','',dot(C.green,'Family Office')+dot(C.green,'HNWI')+dot(C.green,'Family Office'))}
+  ${box(1,36,13,'','','',dot(C.green,'HNWI')+dot(C.green,'Family Office')+dot(C.green,'HNWI'))}
+
+  <!-- VBank -->
+  ${box(18,31,18,'V Bank Munich','Custodian · Tokenized ISIN Depot','alpha',`<div style="font-size:8px;color:${C.violet};font-weight:700;margin-top:4px;font-family:'IBM Plex Mono',monospace">incl. Tokenized ISIN DEPOT</div>`)}
+
+  <!-- Cashlink -->
+  ${box(42,5,16,'Cashlink','Tokenizer & Crypto Registrar','')}
+
+  <!-- Diamond: Tokenized Security -->
+  <div style="position:absolute;left:50%;top:35%;width:58px;height:58px;transform:translate(-50%,-50%) rotate(45deg);background:linear-gradient(135deg,${C.violet},#7C73E6);border-radius:4px;box-shadow:0 2px 12px ${C.violet}40">
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform:rotate(-45deg);text-align:center">
+      <div><div style="font-size:7.5px;font-weight:700;color:#fff;line-height:1.2">Tokenized</div><div style="font-size:7.5px;font-weight:700;color:#fff;line-height:1.2">Security</div><div style="font-size:6px;color:rgba(255,255,255,0.6);font-family:'IBM Plex Mono',monospace;margin-top:1px">Stellar</div></div>
+    </div>
+  </div>
+
+  <!-- Tokenforge -->
+  ${box(40,50,20,'Tokenforge','Erster Investment Platform','')}
+
+  <!-- ERSTER Hero -->
+  <div style="position:absolute;left:34%;top:64%;width:32%;background:${C.card};border:1px solid ${C.gold};border-top:3px solid ${C.gold};border-radius:4px;padding:12px 14px;box-sizing:border-box">
+    <div style="position:absolute;top:-8px;left:10px;background:${C.gold};color:#fff;font-size:7px;font-weight:700;letter-spacing:1.2px;padding:2px 8px;border-radius:2px;font-family:'IBM Plex Mono',monospace">gamma</div>
+    <div style="text-align:center;padding:4px 0 2px">
+      <div style="font-size:15px;font-weight:700;color:${C.text};letter-spacing:4px;margin-bottom:6px">E R S T E R</div>
+      <div style="display:flex;justify-content:center;gap:4px;flex-wrap:wrap;margin-bottom:5px">${chip('Claude')}${chip('Moltbook')}${chip('BCP Partners')}</div>
+      <div style="font-size:9px;color:${C.gold};font-weight:700;letter-spacing:0.3px;font-family:'IBM Plex Mono',monospace">Agent-2-Agent API · x402 · MCP · SRC-8004</div>
+    </div>
+  </div>
+
+  <!-- Gamma: Agents = Gamma badge -->
+  ${box(18,72,18,'','','gamma',`<div style="font-size:7px;font-weight:700;color:${C.red};letter-spacing:1.2px;text-transform:uppercase;margin-bottom:4px;font-family:'IBM Plex Mono',monospace">Agents</div>`+dot(C.red,'Agents Family Offices')+dot(C.red,'Agents HNWI')+dot(C.red,'Agents Retail'))}
+
+  <!-- Beta: Referred Humans = Beta badge -->
+  ${box(64,72,18,'','','beta',`<div style="font-size:7px;font-weight:700;color:${C.green};letter-spacing:1.2px;text-transform:uppercase;margin-bottom:4px;font-family:'IBM Plex Mono',monospace">Referred Humans</div>`+dot(C.green,'Family Office')+dot(C.green,'HNWI')+dot(C.green,'Retail'))}
+
+  <!-- Beta: BCP Holding -->
+  ${box(78,7,20,'BCP Partners','Limited company · German jurisdiction · Holding','')}
+
+  <!-- Beta: SPV -->
+  ${box(78,29,20,'BCP VC Invest I GmbH','SPV as Issuer · Fund of Funds','beta')}
+
+  <!-- Pooled LP -->
+  <div style="position:absolute;left:78%;top:47%;width:20%;border:1px solid rgba(167,139,250,0.4);border-radius:4px;background:${isNight?'rgba(167,139,250,0.08)':'#F4F3FF'};padding:6px 14px;text-align:center;box-sizing:border-box">
+    <div style="font-size:9px;font-weight:700;color:${C.violet}">pooled (tokenized) LP</div>
+  </div>
+
+  <!-- Funnel -->
+  ${box(78,60,20,'','','',`<div style="font-size:7px;font-weight:700;color:${C.sub};letter-spacing:1.2px;text-transform:uppercase;margin-bottom:5px;font-family:'IBM Plex Mono',monospace">Fundraising Funnel</div><div style="display:flex;flex-wrap:wrap;gap:3px">${['Triton Capital','Fabric','Dragonfly','1kx','Bankless','10SG','Blockwall'].map(f=>`<span style="font-size:7.5px;color:${C.muted};background:${isNight?'rgba(255,255,255,0.05)':'#F3F4F6'};border-radius:2px;padding:1px 5px;font-family:'IBM Plex Mono',monospace">${f}</span>`).join('')}</div>`)}
+
+  <!-- Legend -->
+  <div style="position:absolute;bottom:0.5%;left:50%;transform:translateX(-50%);display:flex;gap:20px;align-items:center">
+    ${[{c:C.green,l:'Alpha — Traditional Banking'},{c:C.violet,l:'Beta — Institutional'},{c:C.gold,l:'Gamma — Agentic'}].map(i=>`<div style="display:flex;align-items:center;gap:5px"><div style="width:16px;height:3px;border-radius:1px;background:${i.c}"></div><span style="font-size:8px;color:${C.sub};font-family:'IBM Plex Mono',monospace">${i.l}</span></div>`).join('')}
+  </div>
+  `;
+}
+
+// Call renderArch on init and theme toggle
+const _origToggleTheme=window.toggleTheme;
+window.toggleTheme=function(){_origToggleTheme&&_origToggleTheme();setTimeout(renderArch,50);setTimeout(renderBudget,50);};
+
+// ── GRANT BUDGET ──
+const BUDGET_DATA=[
+  {label:'Personal (2 Mitarbeiter)',amount:120000,pct:32,color:'#0C4A6E',
+   details:[{item:'IT-Lead Engineer (Vollzeit, 12 Mo.)',cost:85000},{item:'Ops, Business Dev, Compliance',cost:35000}]},
+  {label:'Produktentwicklung Plattform',amount:152060,pct:41,color:'#0E7490',
+   details:[
+     {item:'Tokenforge White-Label Setup (inkl. 19% MwSt.)',cost:29750},
+     {item:'Tokenforge Custody Setup (inkl. 19% MwSt.)',cost:23800},
+     {item:'Tokenforge Jahresgebühr (12 × 2K netto)',cost:28560},
+     {item:'Agentic Trust & Lead x402 Integration',cost:30000},
+     {item:'Claude Business (5 Seats × 250 × 12 Mo.)',cost:15000},
+     {item:'MCP Server (3 Tools + x402 Integration)',cost:8000},
+     {item:'ACP Endpoints (4 REST, Stripe-kompatibel)',cost:6000},
+     {item:'SRC-8004 Registry Contracts (Soroban)',cost:10000},
+     {item:'Testing, QA, Security Review',cost:950},
+   ]},
+  {label:'Marketing & Vertrieb',amount:55000,pct:14,color:'#0891B2',
+   details:[
+     {item:'Broker Roadshow (Reisen, Events, Konferenzen)',cost:15000},
+     {item:'PR / Comms (First-Mover Story, Fintech-Presse)',cost:10000},
+     {item:'Website & Brand erster.io',cost:8000},
+     {item:'Community (Stellar Ecosystem, Events)',cost:7000},
+     {item:'Agent Registry Listings (MCP, x402search)',cost:15000},
+   ]},
+  {label:'Rechtliche Struktur & Compliance',amount:18000,pct:5,color:'#22D3EE',
+   details:[
+     {item:'Rechtsberatung (Haftungsdach, MiCA, Agent-Liability)',cost:10000},
+     {item:'Datenschutz / DSGVO (Agent-Daten)',cost:5000},
+     {item:'Erster GmbH Notar / Handelsregister',cost:3000},
+   ]},
+  {label:'Hardware & IT',amount:5000,pct:1,color:'#67E8F9',
+   details:[{item:'Cloud Infrastruktur, Tools, Lizenzen',cost:5000}]},
+  {label:'Working Capital + Reserve',amount:31940,pct:9,color:'#6B7280',
+   details:[
+     {item:'Tokenforge Per-Emission Fees (erste Deals)',cost:7000},
+     {item:'Quantoz Integration / Stablecoin Setup',cost:5000},
+     {item:'Buffer / Unvorhergesehenes',cost:19940},
+   ]},
+];
+
+let budgetExpanded=new Set();
+let budgetCollapsed=false;
+
+function toggleBudget(){
+  budgetCollapsed=!budgetCollapsed;
+  document.getElementById('budget-body').style.display=budgetCollapsed?'none':'block';
+  document.getElementById('budget-toggle-btn').textContent=budgetCollapsed?'▶ Expand':'▼ Collapse';
+}
+
+function fmtDE(n){return n.toLocaleString('de-DE')+'  €';}
+
+function renderBudget(){
+  const el=document.getElementById('budget-bars');
+  if(!el)return;
+  const isNight=document.body.classList.contains('night')||theme==='night';
+  const total=382000;
+
+  // Dashboard color tokens
+  const textCol=isNight?'#e0e6f0':'#1a2233';
+  const subCol=isNight?'rgba(255,255,255,0.35)':'#6b7280';
+  const bgBar=isNight?'rgba(255,255,255,0.06)':'#eef0f4';
+  const cardCol=isNight?'rgba(255,255,255,0.03)':'#f8f9fb';
+  const borderCol=isNight?'rgba(255,255,255,0.07)':'#dde3ee';
+  const accentCol='#6b9bd2';
+
+  // Apply theme-sensitive borders
+  const divider=document.getElementById('budget-divider');
+  if(divider) divider.style.background=borderCol;
+  const totalRow=document.getElementById('budget-total-row');
+  if(totalRow) totalRow.style.borderTop=`1px solid ${borderCol}`;
+
+  // Channel colors mapped to dashboard palette
+  const barColors=['#6b9bd2','#4ade80','#a78bfa','#22d3ee','#67e8f9','#94a3b8'];
+
+  el.innerHTML=BUDGET_DATA.map((item,i)=>{
+    const isOpen=budgetExpanded.has(i);
+    const barW=Math.round((item.amount/total)*100);
+    const color=barColors[i]||accentCol;
+    const showLabel=item.amount>15000;
+
+    const detailHTML=isOpen?`
+      <div style="margin:4px 0 8px 200px;background:${cardCol};border-radius:4px;border:1px solid ${borderCol};padding:10px 14px">
+        ${item.details.map((d,j)=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;${j<item.details.length-1?`border-bottom:1px solid ${borderCol}`:''}">
+            <span style="font-size:11px;color:${subCol}">${d.item}</span>
+            <span style="font-size:11px;color:${textCol};font-weight:600;white-space:nowrap;font-family:'IBM Plex Mono',monospace">${fmtDE(d.cost)}</span>
+          </div>`).join('')}
+        <div style="display:flex;justify-content:space-between;padding-top:6px;margin-top:2px;border-top:1px solid ${borderCol}">
+          <span style="font-size:11px;font-weight:700;color:${textCol}">Summe</span>
+          <span style="font-size:11px;font-weight:700;color:${color};font-family:'IBM Plex Mono',monospace">${fmtDE(item.details.reduce((s,d)=>s+d.cost,0))}</span>
+        </div>
+      </div>`:''
+    ;
+
+    return `
+      <div style="margin-bottom:4px">
+        <div onclick="budgetExpanded.has(${i})?budgetExpanded.delete(${i}):budgetExpanded.add(${i});renderBudget()" style="display:grid;grid-template-columns:200px 1fr 80px;align-items:center;gap:12px;cursor:pointer;padding:3px 0;border-radius:3px">
+          <div style="font-size:12px;color:${textCol};display:flex;align-items:center;gap:6px">
+            <span style="font-size:8px;color:${isOpen?color:subCol};display:inline-block;transform:rotate(${isOpen?90:0}deg);transition:transform .2s;font-family:'IBM Plex Mono',monospace">▶</span>
+            ${item.label}
+          </div>
+          <div style="position:relative;height:24px;background:${bgBar};border-radius:3px;overflow:hidden">
+            <div style="position:absolute;left:0;top:0;bottom:0;width:${barW}%;background:${color};opacity:${isNight?.85:1};border-radius:3px;display:flex;align-items:center;padding-left:8px;transition:width .4s ease">
+              ${showLabel?`<span style="font-size:10px;font-weight:600;color:${isNight?'rgba(0,0,0,0.75)':'white'};white-space:nowrap;font-family:'IBM Plex Mono',monospace">${fmtDE(item.amount)} (${item.pct}%)</span>`:''}
+            </div>
+            ${!showLabel?`<span style="position:absolute;left:${barW+1}%;top:50%;transform:translateY(-50%);font-size:10px;font-weight:600;color:${subCol};white-space:nowrap;font-family:'IBM Plex Mono',monospace">${fmtDE(item.amount)}</span>`:''}
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:${subCol};text-align:right">${item.pct}%</div>
+        </div>
+        ${detailHTML}
+      </div>`;
+  }).join('');
+
+  // Theme the funding source panels
+  const panels=document.querySelectorAll('#budget-body > div:first-child > div');
+  panels.forEach(p=>{
+    p.style.borderBottom=`1px solid ${borderCol}`;
+  });
+
+  // Draw pie chart
+  const canvas=document.getElementById('budget-pie');
+  const legend=document.getElementById('budget-pie-legend');
+  if(canvas&&canvas.getContext){
+    const ctx=canvas.getContext('2d');
+    const cx=80,cy=80,r=72,ri=36;
+    const total=BUDGET_DATA.reduce((s,d)=>s+d.amount,0);
+    let angle=-Math.PI/2;
+    ctx.clearRect(0,0,160,160);
+
+    BUDGET_DATA.forEach((item,i)=>{
+      const slice=(item.amount/total)*Math.PI*2;
+      const color=barColors[i];
+      // outer arc
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,r,angle,angle+slice);
+      ctx.closePath();
+      ctx.fillStyle=color;
+      ctx.globalAlpha=isNight?0.88:1;
+      ctx.fill();
+      // inner gap for donut
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,ri,angle,angle+slice);
+      ctx.closePath();
+      ctx.fillStyle=isNight?'#1a1d27':'#ffffff';
+      ctx.globalAlpha=1;
+      ctx.fill();
+      angle+=slice;
+    });
+
+    // center label
+    ctx.fillStyle=isNight?'#e8eaf0':'#1a2233';
+    ctx.font='bold 13px IBM Plex Mono,monospace';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText('382K€',cx,cy-6);
+    ctx.font='9px IBM Plex Mono,monospace';
+    ctx.fillStyle=isNight?'rgba(255,255,255,0.35)':'#6b7280';
+    ctx.fillText('Total',cx,cy+9);
+
+    // legend
+    if(legend){
+      legend.innerHTML=BUDGET_DATA.map((item,i)=>`
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:8px;height:8px;border-radius:2px;background:${barColors[i]};flex-shrink:0"></div>
+          <span style="font-size:9px;color:${subCol};flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.label.split(' ').slice(0,3).join(' ')}</span>
+          <span style="font-size:9px;font-weight:600;color:${textCol};font-family:'IBM Plex Mono',monospace;flex-shrink:0">${item.pct}%</span>
+        </div>`).join('');
+    }
+  }
+}
+
+// Wire full init on load
+document.addEventListener('DOMContentLoaded',()=>{
+  renderAll();
+  setTimeout(renderArch,80);
+  setTimeout(renderBudget,100);
+});
+</script>
+</body>
+</html>
